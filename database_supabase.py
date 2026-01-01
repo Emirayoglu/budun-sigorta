@@ -184,9 +184,9 @@ class SupabaseDB:
         return self._post('policeler', data)
     
     def musterileri_getir(self):
-        """Tüm müşterileri getir"""
+        """Tüm müşterileri getir - DICT FORMAT"""
         musteriler = self._get('musteriler', order='ad_soyad.asc')
-        return [(m['id'], m['ad_soyad'], m.get('tc_no', ''), m.get('telefon', ''), m.get('email', ''), m.get('adres', '')) for m in musteriler]
+        return musteriler  # Direkt dict listesi dön
     
     def satiscilari_getir(self):
         """Aktif satışçıları getir"""

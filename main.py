@@ -1568,12 +1568,12 @@ class SigortaAcenteApp(QMainWindow):
             QMessageBox.critical(self, "Hata", message)
             return
         
-        # Müşteri ID'sini al (Supabase ile)
+        # Müşteri ID'sini al (Supabase ile - DICT FORMAT)
         musteriler = self.db.musterileri_getir()
         musteri_id = None
         for m in musteriler:
-            if m[2] == tc_no:  # tc_no index 2'de
-                musteri_id = m[0]  # id index 0'da
+            if m.get('tc_no') == tc_no:
+                musteri_id = m.get('id')
                 break
         
         if not musteri_id:
@@ -1926,15 +1926,16 @@ class SigortaAcenteApp(QMainWindow):
             sirket = police.get('sirket', '')
             prim = police.get('prim_tutari', 0)
             
-            # Müşteri bilgilerini al
+            
+            # Müşteri bilgilerini al (DICT FORMAT)
             musteri_id = police.get('musteri_id')
             musteriler = self.db.musterileri_getir()
             musteri_adi = ""
             telefon = ""
             for m in musteriler:
-                if m[0] == musteri_id:
-                    musteri_adi = m[1]
-                    telefon = m[3] if len(m) > 3 else ""
+                if m.get('id') == musteri_id:
+                    musteri_adi = m.get('ad_soyad', '')
+                    telefon = m.get('telefon', '')
                     break
             
             # Finans bilgileri (şimdilik varsayılan değerler)
@@ -2179,15 +2180,15 @@ class SigortaAcenteApp(QMainWindow):
             bitis = police.get('bitis_tarihi', '')
             prim = police.get('prim_tutari', 0)
             
-            # Müşteri bilgilerini al
+            # Müşteri bilgilerini al (DICT FORMAT)
             musteri_id = police.get('musteri_id')
             musteriler = self.db.musterileri_getir()
             musteri_adi = ""
             telefon = ""
             for m in musteriler:
-                if m[0] == musteri_id:
-                    musteri_adi = m[1]
-                    telefon = m[3] if len(m) > 3 else ""
+                if m.get('id') == musteri_id:
+                    musteri_adi = m.get('ad_soyad', '')
+                    telefon = m.get('telefon', '')
                     break
             
             # Police ID'yi sakla
