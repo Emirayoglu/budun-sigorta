@@ -77,10 +77,14 @@ class SupabaseDB:
         url = f"{self.supabase_url}/rest/v1/{table}"
         response = requests.post(url, headers=self.headers, json=data)
         
+        print(f"POST {table}: Status {response.status_code}")
+        
         if response.status_code in [200, 201]:
             return True, "Başarılı"
         else:
-            return False, f"Hata: {response.text}"
+            error_msg = f"Hata: {response.status_code} - {response.text}"
+            print(error_msg)
+            return False, error_msg
     
     def _patch(self, table, filters, data):
         """PATCH isteği"""
@@ -121,12 +125,20 @@ class SupabaseDB:
         result = []
         for p in policeler:
             # Müşteri bilgisi
-            musteri = self._get('musteriler', filters={'id': p.get('musteri_id')})
-            musteri_ad = musteri[0]['ad_soyad'] if musteri else 'Bilinmiyor'
+            musteri_id = p.get('musteri_id')
+            if musteri_id:
+                musteri = self._get('musteriler', filters={'id': musteri_id})
+                musteri_ad = musteri[0]['ad_soyad'] if musteri else 'Bilinmiyor'
+            else:
+                musteri_ad = 'Bilinmiyor'
             
             # Satışçı bilgisi
-            satisci = self._get('satiscilar', filters={'id': p.get('satisci_id')})
-            satisci_ad = satisci[0]['ad_soyad'] if satisci else 'Bilinmiyor'
+            satisci_id = p.get('satisci_id')
+            if satisci_id:
+                satisci = self._get('satiscilar', filters={'id': satisci_id})
+                satisci_ad = satisci[0]['ad_soyad'] if satisci else '-'
+            else:
+                satisci_ad = '-'
             
             result.append((
                 musteri_ad,
