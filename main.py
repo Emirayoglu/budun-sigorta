@@ -1842,15 +1842,28 @@ class SigortaAcenteApp(QMainWindow):
             row_position = self.finans_table.rowCount()
             self.finans_table.insertRow(row_position)
             
-            police_id, police_no, musteri_adi, telefon, tur, sirket, prim, borc, odenen, kalan, tarih = police
+            # Supabase dict formatından değerleri al
+            police_id = police.get('id')
+            police_no = police.get('police_no', '')
+            tur = police.get('sigorta_turu', '')
+            sirket = police.get('sirket', '')
+            prim = police.get('prim_tutari', 0)
             
-            # Borc tutarını kontrol et (None ise prim tutarına eşitle)
-            if borc is None:
-                borc = prim
-            if odenen is None:
-                odenen = 0
-            if kalan is None:
-                kalan = borc - odenen
+            # Müşteri bilgilerini al
+            musteri_id = police.get('musteri_id')
+            musteriler = self.db.musterileri_getir()
+            musteri_adi = ""
+            telefon = ""
+            for m in musteriler:
+                if m[0] == musteri_id:
+                    musteri_adi = m[1]
+                    telefon = m[3] if len(m) > 3 else ""
+                    break
+            
+            # Finans bilgileri (şimdilik varsayılan değerler)
+            borc = prim
+            odenen = 0
+            kalan = borc - odenen
             
             # Poliçe ID'sini sakla (gizli kolon olarak)
             id_item = QTableWidgetItem(str(police_id))
