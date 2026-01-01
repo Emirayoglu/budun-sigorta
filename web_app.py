@@ -126,6 +126,8 @@ def get_local_ip():
         return "127.0.0.1"
 
 if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 5000))
     local_ip = get_local_ip()
     
     print("=" * 60)
@@ -134,16 +136,17 @@ if __name__ == '__main__':
     print()
     print("✅ Server başlatılıyor...")
     print()
-    print("📱 TELEFONDAN ERİŞİM:")
-    print(f"   http://{local_ip}:5000")
+    print(f"📡 Port: {port}")
+    print(f"📱 TELEFONDAN ERİŞİM:")
+    print(f"   http://{local_ip}:{port}")
     print()
     print("💻 BU BILGISAYARDAN:")
-    print("   http://localhost:5000")
+    print(f"   http://localhost:{port}")
     print()
     print("🔄 Server'ı durdurmak için: CTRL+C")
     print("=" * 60)
     print()
     
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
 
 
