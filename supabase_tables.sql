@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS satiscilar (
     ad_soyad VARCHAR(200) NOT NULL UNIQUE,
     telefon VARCHAR(20),
     email VARCHAR(100),
-    aktif BOOLEAN DEFAULT TRUE,
+    komisyon_orani DECIMAL(5,2) DEFAULT 15.00,
+    durum VARCHAR(20) DEFAULT 'Aktif',
     kayit_tarihi TIMESTAMP DEFAULT NOW(),
     guncelleme_tarihi TIMESTAMP DEFAULT NOW()
 );

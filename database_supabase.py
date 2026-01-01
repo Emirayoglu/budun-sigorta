@@ -31,7 +31,7 @@ class SupabaseDB:
         # Geriye uyumluluk için dummy cursor
         self._cursor = self.FakeCursor()
         self._connection = None
-        print("✅ Supabase REST API'ye bağlandı (requests)")
+        print("OK Supabase REST API'ye baglandi (requests)")
     
     class FakeCursor:
         def execute(self, *args, **kwargs):
@@ -112,11 +112,11 @@ class SupabaseDB:
     
     def get_policeler(self):
         """Tüm poliçeleri getir"""
-        return self._get('policeler', order='created_at.desc')
+        return self._get('policeler', order='kayit_tarihi.desc')
     
     def police_listesi_getir(self):
         """Poliçe listesini getir (formatlanmış)"""
-        policeler = self._get('policeler', order='created_at.desc')
+        policeler = self._get('policeler', order='kayit_tarihi.desc')
         
         result = []
         for p in policeler:
@@ -213,11 +213,11 @@ class SupabaseDB:
     
     def nakit_policeleri_getir(self):
         """Nakit ödeme şekilli poliçeleri getir"""
-        return self._get('policeler', filters={'odeme_sekli': 'Nakit'}, order='created_at.desc')
+        return self._get('policeler', filters={'odeme_sekli': 'Nakit'}, order='kayit_tarihi.desc')
     
     def finans_kayitlari_getir(self):
         """Finans kayıtlarını getir"""
-        return self._get('finans_kayitlari', order='created_at.desc')
+        return self._get('finans_kayitlari', order='kayit_tarihi.desc')
     
     def finans_guncelle(self, police_id, odendi_mi, odeme_tarihi=None):
         """Finans durumunu güncelle"""
@@ -238,7 +238,7 @@ class SupabaseDB:
         if musteri_id:
             return self._get('policeler', filters={'musteri_id': musteri_id})
         else:
-            return self._get('policeler', order='created_at.desc')
+            return self._get('policeler', order='kayit_tarihi.desc')
     
     def capraz_satis_onerileri_getir(self, sigorta_turu):
         """Çapraz satış önerileri"""
