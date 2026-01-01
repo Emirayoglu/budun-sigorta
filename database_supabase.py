@@ -233,9 +233,12 @@ class SupabaseDB:
             return finans[0]
         return None
     
-    def capraz_satis_policeleri_getir(self, musteri_id):
-        """Müşterinin mevcut poliçelerini getir"""
-        return self._get('policeler', filters={'musteri_id': musteri_id})
+    def capraz_satis_policeleri_getir(self, musteri_id=None):
+        """Müşterinin mevcut poliçelerini getir. musteri_id None ise tüm poliçeleri getir."""
+        if musteri_id:
+            return self._get('policeler', filters={'musteri_id': musteri_id})
+        else:
+            return self._get('policeler', order='created_at.desc')
     
     def capraz_satis_onerileri_getir(self, sigorta_turu):
         """Çapraz satış önerileri"""
