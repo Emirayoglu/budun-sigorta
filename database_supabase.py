@@ -270,29 +270,13 @@ class SupabaseDB:
         """Belirli tarih aralığındaki poliçeleri getir (yenileme için)"""
         policeler = self._get('policeler', order='bitis_tarihi.asc')
         
-        # Tarih filtreleme
+        # Tarih filtreleme - DICT FORMAT
         filtered = []
         for p in policeler:
             bitis = p.get('bitis_tarihi')
-            if bitis and baslangic_tarih <= bitis <= bitis_tarih:
-                # Müşteri bilgisi
-                musteri = self._get('musteriler', filters={'id': p.get('musteri_id')})
-                musteri_data = musteri[0] if musteri else {}
-                
-                # Satışçı bilgisi
-                satisci = self._get('satiscilar', filters={'id': p.get('satisci_id')})
-                satisci_data = satisci[0] if satisci else {}
-                
-                filtered.append((
-                    musteri_data.get('ad_soyad', ''),
-                    musteri_data.get('telefon', ''),
-                    p.get('police_no'),
-                    p.get('sigorta_turu'),
-                    p.get('sirket'),
-                    p.get('bitis_tarihi'),
-                    satisci_data.get('ad_soyad', '-'),
-                    p.get('yenileme_durumu', 'Süreç devam ediyor')
-                ))
+            if bitis and baslangic_tarih <= bitis.split('T')[0] <= bitis_tarih:
+                # Direkt dict olarak dön
+                filtered.append(p)
         
         return filtered
     
