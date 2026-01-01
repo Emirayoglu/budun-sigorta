@@ -529,6 +529,9 @@ class SigortaAcenteApp(QMainWindow):
             "Başlangıç", "Bitiş", "Prim (₺)", "Komisyon (₺)", "Satışçı"
         ])
         
+        # Çift tıklama eventi
+        self.police_table.cellDoubleClicked.connect(self.police_detay_ac)
+        
         # Tablo stil ayarları
         self.police_table.setAlternatingRowColors(True)
         self.police_table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -791,9 +794,12 @@ class SigortaAcenteApp(QMainWindow):
         
         # Tüm yenilemeler listesini sakla (filtreleme için)
         self.tum_yenilemeler = []
-        for police in policeler:
-            bitis_str = police[5]
-            bitis_tarih = datetime.strptime(bitis_str, "%Y-%m-%d").date()
+        for police_dict in policeler:
+            bitis_str = police_dict.get('bitis_tarihi', '')
+            if not bitis_str:
+                continue
+            
+            bitis_tarih = datetime.strptime(bitis_str.split('T')[0], "%Y-%m-%d").date()
             kalan_gun = (bitis_tarih - bugun).days
             
             # Durum belirle
@@ -804,8 +810,8 @@ class SigortaAcenteApp(QMainWindow):
             else:
                 durum = "normal"
             
-            # Tuple'a ekle (8 police verisi + kalan_gun + durum)
-            self.tum_yenilemeler.append(police + (kalan_gun, durum))
+            # Dict + kalan_gun + durum tuple olarak ekle
+            self.tum_yenilemeler.append((police_dict, kalan_gun, durum))
         
         # Filtrelenmiş listeyi göster
         self.yenileme_tabloya_yukle(self.tum_yenilemeler)
@@ -822,16 +828,19 @@ class SigortaAcenteApp(QMainWindow):
         
         # Tabloya ekle
         for row_idx, yenileme_data in enumerate(yenilemeler):
-            # İlk 8 eleman police bilgileri (7 eski + 1 yenileme_durumu), sonraki 2 kalan_gun ve durum
-            police = yenileme_data[:8]
-            kalan_gun = yenileme_data[8]
-            yenileme_durumu = police[7]  # yenileme_durumu son police bilgisi
+            # yenileme_data = (police_dict, kalan_gun, durum)
+            police = yenileme_data[0]
+            kalan_gun = yenileme_data[1]
+            yenileme_durumu = police.get('yenileme_durumu', 'Süreç devam ediyor')
             
             self.yenileme_table.insertRow(row_idx)
             
             # Bitiş tarihini parse et
-            bitis_str = police[5]
-            bitis_tarih = datetime.strptime(bitis_str, "%Y-%m-%d").date()
+            bitis_str = police.get('bitis_tarihi', '')
+            if bitis_str:
+                bitis_tarih = datetime.strptime(bitis_str.split('T')[0], "%Y-%m-%d").date()
+            else:
+                bitis_tarih = bugun
             
             # Satır rengini yenileme durumuna göre belirle - Daha canlı renkler
             if yenileme_durumu == "Poliçeleşti":
@@ -844,7 +853,6 @@ class SigortaAcenteApp(QMainWindow):
                 satir_renk = "#ffcc80"  # Daha canlı turuncu
                 yazi_renk = "#000000"
             
-            # Durum ikonu (acillik durumu için)
             # Durum ikonu (acillik durumu için)
             if kalan_gun <= 30:
                 durum = "🔴"
@@ -860,36 +868,48 @@ class SigortaAcenteApp(QMainWindow):
             durum_item.setForeground(QColor(yazi_renk))
             self.yenileme_table.setItem(row_idx, 0, durum_item)
             
+            # Müşteri adını al
+            musteri_id = police.get('musteri_id')
+            musteri_adi = '-'
+            musteri_telefon = '-'
+            if musteri_id:
+                musteriler = self.db.musterileri_getir()
+                for m in musteriler:
+                    if m.get('id') == musteri_id:
+                        musteri_adi = m.get('ad_soyad', '-')
+                        musteri_telefon = m.get('telefon', '-')
+                        break
+            
             # Müşteri
-            item = QTableWidgetItem(police[0])
+            item = QTableWidgetItem(musteri_adi)
             item.setTextAlignment(Qt.AlignCenter)
             item.setBackground(QColor(satir_renk))
             item.setForeground(QColor(yazi_renk))
             self.yenileme_table.setItem(row_idx, 1, item)
             
             # Telefon
-            item = QTableWidgetItem(police[1] or "-")
+            item = QTableWidgetItem(musteri_telefon)
             item.setTextAlignment(Qt.AlignCenter)
             item.setBackground(QColor(satir_renk))
             item.setForeground(QColor(yazi_renk))
             self.yenileme_table.setItem(row_idx, 2, item)
             
             # Poliçe No
-            item = QTableWidgetItem(police[2])
+            item = QTableWidgetItem(police.get('police_no', '-'))
             item.setTextAlignment(Qt.AlignCenter)
             item.setBackground(QColor(satir_renk))
             item.setForeground(QColor(yazi_renk))
             self.yenileme_table.setItem(row_idx, 3, item)
             
             # Tür
-            item = QTableWidgetItem(police[3])
+            item = QTableWidgetItem(police.get('tur', '-'))
             item.setTextAlignment(Qt.AlignCenter)
             item.setBackground(QColor(satir_renk))
             item.setForeground(QColor(yazi_renk))
             self.yenileme_table.setItem(row_idx, 4, item)
             
             # Şirket
-            item = QTableWidgetItem(police[4])
+            item = QTableWidgetItem(police.get('sirket', '-'))
             item.setTextAlignment(Qt.AlignCenter)
             item.setBackground(QColor(satir_renk))
             item.setForeground(QColor(yazi_renk))
@@ -920,8 +940,18 @@ class SigortaAcenteApp(QMainWindow):
                 item.setFont(font)
             self.yenileme_table.setItem(row_idx, 7, item)
             
+            # Satışçı adını al
+            satisci_id = police.get('satisci_id')
+            satisci_adi = '-'
+            if satisci_id:
+                satiscilar = self.db.satiscilari_getir()
+                for s_id, s_ad, s_komisyon in satiscilar:
+                    if s_id == satisci_id:
+                        satisci_adi = s_ad
+                        break
+            
             # Satışçı
-            item = QTableWidgetItem(police[6])
+            item = QTableWidgetItem(satisci_adi)
             item.setTextAlignment(Qt.AlignCenter)
             item.setBackground(QColor(satir_renk))
             item.setForeground(QColor(yazi_renk))
@@ -965,8 +995,8 @@ class SigortaAcenteApp(QMainWindow):
                 }}
             """)
             
-            # Police no'yu data olarak sakla
-            durum_combo.setProperty("police_no", police[2])
+            # Police ID'yi data olarak sakla
+            durum_combo.setProperty("police_id", police.get('id'))
             durum_combo.currentTextChanged.connect(self.yenileme_durum_degisti)
             
             self.yenileme_table.setCellWidget(row_idx, 9, durum_combo)
@@ -977,10 +1007,13 @@ class SigortaAcenteApp(QMainWindow):
         """Yenileme durumu değiştiğinde çağrılır"""
         # ComboBox'ı bul
         combo = self.sender()
-        police_no = combo.property("police_no")
+        police_id = combo.property("police_id")
+        
+        if not police_id:
+            return
         
         # Veritabanını güncelle
-        success, message = self.db.yenileme_durumu_guncelle(police_no, yeni_durum)
+        success, message = self.db.yenileme_durumu_guncelle(police_id, yeni_durum)
         
         if success:
             # Listeyi yenile (renkleri güncelle)
@@ -998,24 +1031,36 @@ class SigortaAcenteApp(QMainWindow):
         # Filtreleme yap
         filtrelenmis = []
         for yenileme in self.tum_yenilemeler:
-            police = yenileme[:8]  # İlk 8 eleman police bilgileri (7 eski + yenileme_durumu)
-            durum = yenileme[9]    # Son eleman acillik durumu
+            # yenileme = (police_dict, kalan_gun, durum)
+            police = yenileme[0]
+            kalan_gun = yenileme[1]
+            durum = yenileme[2]
+            
+            # Müşteri bilgilerini al
+            musteri_id = police.get('musteri_id')
+            musteri_adi = ''
+            musteri_telefon = ''
+            if musteri_id:
+                musteriler = self.db.musterileri_getir()
+                for m in musteriler:
+                    if m.get('id') == musteri_id:
+                        musteri_adi = m.get('ad_soyad', '')
+                        musteri_telefon = m.get('telefon', '')
+                        break
             
             # Arama metni kontrolü (müşteri, telefon, poliçe no)
             arama_uygun = True
             if arama_metni:
-                musteri = str(police[0]).lower()
-                telefon = str(police[1]).lower() if police[1] else ""
-                police_no = str(police[2]).lower()
-                arama_uygun = (arama_metni in musteri or 
-                              arama_metni in telefon or 
+                police_no = str(police.get('police_no', '')).lower()
+                arama_uygun = (arama_metni in musteri_adi.lower() or 
+                              arama_metni in musteri_telefon.lower() or 
                               arama_metni in police_no)
             
             # Tür filtresi kontrolü
-            tur_uygun = (tur_filtre == "Tümü" or police[3] == tur_filtre)
+            tur_uygun = (tur_filtre == "Tümü" or police.get('tur') == tur_filtre)
             
             # Şirket filtresi kontrolü
-            sirket_uygun = (sirket_filtre == "Tümü" or police[4] == sirket_filtre)
+            sirket_uygun = (sirket_filtre == "Tümü" or police.get('sirket') == sirket_filtre)
             
             # Durum filtresi kontrolü
             durum_uygun = True
@@ -1682,6 +1727,38 @@ class SigortaAcenteApp(QMainWindow):
         self.filtre_sirket_combo.setCurrentIndex(0)
         self.tabloya_yukle(self.tum_policeler)
     
+    
+    def police_detay_ac(self, row, column):
+        """Poliçe detay penceresini aç (çift tıklama)"""
+        try:
+            # Poliçe no'sunu al
+            police_no_item = self.police_table.item(row, 1)  # Poliçe No kolonu
+            if not police_no_item:
+                return
+            
+            police_no = police_no_item.text()
+            
+            # Poliçe ID'sini al (police_no'dan Supabase'den bul)
+            policeler = self.db.get_policeler()
+            police_data = None
+            for p in policeler:
+                if p.get('police_no') == police_no:
+                    police_data = p
+                    break
+            
+            if not police_data:
+                QMessageBox.warning(self, "Uyarı", "Poliçe bulunamadı!")
+                return
+            
+            # Detay dialogunu aç
+            dialog = PoliceDetayDialog(self, police_data, self.db)
+            if dialog.exec():
+                # Dialog onaylandı, listeleri güncelle
+                self.tum_listeleri_guncelle()
+                
+        except Exception as e:
+            QMessageBox.critical(self, "Hata", f"Poliçe detayı açılamadı: {str(e)}")
+    
     def formu_temizle(self):
         """Form alanlarını temizle"""
         self.ad_soyad_input.clear()
@@ -2273,11 +2350,11 @@ class SigortaAcenteApp(QMainWindow):
 class PoliceDetayDialog(QDialog):
     """Poliçe detay ve düzenleme penceresi"""
     
-    def __init__(self, parent, police_no, db):
+    def __init__(self, parent, police_data, db):
         super().__init__(parent)
         self.db = db
-        self.police_no = police_no
-        self.police_data = None
+        self.police_data = police_data
+        self.police_id = police_data.get('id')
         self.init_ui()
         self.bilgileri_yukle()
     
@@ -2491,41 +2568,64 @@ class PoliceDetayDialog(QDialog):
     
     def bilgileri_yukle(self):
         """Poliçe bilgilerini veritabanından yükle"""
-        self.police_data = self.db.police_detay_getir(self.police_no)
-        
         if not self.police_data:
             QMessageBox.warning(self, "Hata", "Poliçe bilgileri yüklenemedi!")
             self.reject()
             return
         
+        # Müşteri bilgilerini al
+        musteri_id = self.police_data.get('musteri_id')
+        musteri_data = {}
+        if musteri_id:
+            musteriler = self.db.musterileri_getir()
+            for m in musteriler:
+                if m.get('id') == musteri_id:
+                    musteri_data = m
+                    break
+        
+        # Satışçı bilgilerini al
+        satisci_id = self.police_data.get('satisci_id')
+        satisci_data = {}
+        if satisci_id:
+            satiscilar = self.db.satiscilari_getir()
+            for s_id, s_ad, s_komisyon in satiscilar:
+                if s_id == satisci_id:
+                    satisci_data = {'id': s_id, 'ad_soyad': s_ad, 'komisyon_orani': s_komisyon}
+                    break
+        
         # Müşteri bilgileri
-        self.musteri_ad_label.setText(self.police_data[9])
-        self.musteri_tc_label.setText(self.police_data[10])
-        self.musteri_telefon_label.setText(self.police_data[11] or "-")
-        self.musteri_email_label.setText(self.police_data[12] or "-")
+        self.musteri_ad_label.setText(musteri_data.get('ad_soyad', '-'))
+        self.musteri_tc_label.setText(musteri_data.get('tc_no', '-'))
+        self.musteri_telefon_label.setText(musteri_data.get('telefon', '-'))
+        self.musteri_email_label.setText(musteri_data.get('email', '-'))
         
         # Poliçe bilgileri
-        self.police_no_input.setText(self.police_data[1])
-        self.tur_combo.setCurrentText(self.police_data[2])
-        self.sirket_combo.setCurrentText(self.police_data[3])
+        self.police_no_input.setText(self.police_data.get('police_no', ''))
+        self.tur_combo.setCurrentText(self.police_data.get('tur', ''))
+        self.sirket_combo.setCurrentText(self.police_data.get('sirket', ''))
         
         # Tarihleri ayarla
-        baslangic = datetime.strptime(self.police_data[4], "%Y-%m-%d")
-        bitis = datetime.strptime(self.police_data[5], "%Y-%m-%d")
-        self.baslangic_date.setDate(QDate(baslangic.year, baslangic.month, baslangic.day))
-        self.bitis_date.setDate(QDate(bitis.year, bitis.month, bitis.day))
+        baslangic_str = self.police_data.get('baslangic_tarihi', '')
+        bitis_str = self.police_data.get('bitis_tarihi', '')
+        if baslangic_str:
+            baslangic = datetime.strptime(baslangic_str.split('T')[0], "%Y-%m-%d")
+            self.baslangic_date.setDate(QDate(baslangic.year, baslangic.month, baslangic.day))
+        if bitis_str:
+            bitis = datetime.strptime(bitis_str.split('T')[0], "%Y-%m-%d")
+            self.bitis_date.setDate(QDate(bitis.year, bitis.month, bitis.day))
         
         # Tutarlar
-        self.prim_input.setText(str(self.police_data[6]))
+        self.prim_input.setText(str(self.police_data.get('prim_tutari', 0)))
         self.komisyon_hesapla()
         
         # Açıklama
-        self.aciklama_input.setText(self.police_data[8] or "")
+        self.aciklama_input.setText(self.police_data.get('aciklama', ''))
         
         # Satışçı
-        if self.police_data[13]:  # satisci_id
+        satisci_id = self.police_data.get('satisci_id')
+        if satisci_id:
             for i in range(self.satisci_combo_dialog.count()):
-                if self.satisci_combo_dialog.itemData(i) == self.police_data[13]:
+                if self.satisci_combo_dialog.itemData(i) == satisci_id:
                     self.satisci_combo_dialog.setCurrentIndex(i)
                     break
     
@@ -2564,7 +2664,7 @@ class PoliceDetayDialog(QDialog):
         
         # Güncelleme yap
         success, message = self.db.police_guncelle(
-            self.police_data[0],  # police_id
+            self.police_id,  # police_id (dict'ten alınan)
             police_no, tur, sirket, baslangic, bitis,
             prim, komisyon, aciklama, satisci_id
         )
@@ -2581,13 +2681,13 @@ class PoliceDetayDialog(QDialog):
         reply = QMessageBox.question(
             self, 
             "Poliçe Sil",
-            f"'{self.police_no}' numaralı poliçeyi silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!",
+            f"'{self.police_data.get('police_no', '')}' numaralı poliçeyi silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
         
         if reply == QMessageBox.Yes:
-            success, message = self.db.police_sil(self.police_data[0])
+            success, message = self.db.police_sil(self.police_id)
             
             if success:
                 QMessageBox.information(self, "Başarılı", message)
