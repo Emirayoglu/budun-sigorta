@@ -1889,12 +1889,13 @@ class SigortaAcenteApp(QMainWindow):
                 kalan_item.setForeground(QColor("#2e7d32"))  # Koyu yeşil
             self.finans_table.setItem(row_position, 8, kalan_item)
             
-            # Tarih
+            # Tarih (kayit_tarihi)
+            tarih = police.get('kayit_tarihi', '')
             try:
-                tarih_obj = datetime.strptime(tarih, "%Y-%m-%d %H:%M:%S")
+                tarih_obj = datetime.strptime(tarih.split('.')[0], "%Y-%m-%d %H:%M:%S")  # Milisaniyeleri at
                 tarih_str = tarih_obj.strftime("%d.%m.%Y")
             except:
-                tarih_str = tarih
+                tarih_str = tarih.split('T')[0] if 'T' in tarih else tarih  # ISO format kontrolü
             self.finans_table.setItem(row_position, 9, QTableWidgetItem(tarih_str))
             
             # Police ID'yi ilk hücrede sakla
