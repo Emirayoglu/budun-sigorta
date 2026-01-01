@@ -1127,7 +1127,7 @@ class SigortaAcenteApp(QMainWindow):
         self.rapor_satisci_combo = QComboBox()
         self.rapor_satisci_combo.addItem("Tümü")
         satiscilar = self.db.satiscilari_getir()
-        for satisci_id, ad_soyad in satiscilar:
+        for satisci_id, ad_soyad, komisyon_orani in satiscilar:  # 3 değer
             self.rapor_satisci_combo.addItem(ad_soyad, satisci_id)
         form.addRow(self.rapor_satisci_combo)
         
@@ -1467,7 +1467,7 @@ class SigortaAcenteApp(QMainWindow):
         """Satışçıları combo box'a yükle"""
         self.satisci_combo.clear()
         satiscilar = self.db.satiscilari_getir()
-        for satisci_id, ad_soyad in satiscilar:
+        for satisci_id, ad_soyad, komisyon_orani in satiscilar:  # 3 değer
             self.satisci_combo.addItem(ad_soyad, satisci_id)
     
     def baslangic_tarihi_degisti(self, tarih):
@@ -1517,7 +1517,9 @@ class SigortaAcenteApp(QMainWindow):
         # Önce müşteriyi ekle
         success, message = self.db.musteri_ekle(ad_soyad, tc_no, telefon, email, adres)
         
-        if not success and "zaten kayıtlı" not in message:
+        # Müşteri zaten varsa sorun değil, ID'sini alalım
+        # "zaten kayıtlı", "already exists", "duplicate" gibi mesajlar kabul edilir
+        if not success and "zaten" not in message.lower() and "already" not in message.lower() and "duplicate" not in message.lower():
             QMessageBox.critical(self, "Hata", message)
             return
         
@@ -2368,7 +2370,7 @@ class PoliceDetayDialog(QDialog):
         self.satisci_combo_dialog = QComboBox()
         self.satisci_combo_dialog.addItem("Seçiniz", None)
         satiscilar = self.db.satiscilari_getir()
-        for satisci_id, ad_soyad in satiscilar:
+        for satisci_id, ad_soyad, komisyon_orani in satiscilar:  # 3 değer
             self.satisci_combo_dialog.addItem(ad_soyad, satisci_id)
         police_layout.addRow("Satışçı:", self.satisci_combo_dialog)
         
