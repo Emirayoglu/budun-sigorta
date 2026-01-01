@@ -251,6 +251,51 @@ class SupabaseDB:
         }
         return oneriler.get(sigorta_turu, [])
     
+    def yenileme_policeleri_getir(self, baslangic_tarih, bitis_tarih):
+        """Belirli tarih aralığındaki poliçeleri getir (yenileme için)"""
+        policeler = self._get('policeler', order='bitis_tarihi.asc')
+        
+        # Tarih filtreleme
+        filtered = []
+        for p in policeler:
+            bitis = p.get('bitis_tarihi')
+            if bitis and baslangic_tarih <= bitis <= bitis_tarih:
+                # Müşteri bilgisi
+                musteri = self._get('musteriler', filters={'id': p.get('musteri_id')})
+                musteri_data = musteri[0] if musteri else {}
+                
+                # Satışçı bilgisi
+                satisci = self._get('satiscilar', filters={'id': p.get('satisci_id')})
+                satisci_data = satisci[0] if satisci else {}
+                
+                filtered.append((
+                    musteri_data.get('ad_soyad', ''),
+                    musteri_data.get('telefon', ''),
+                    p.get('police_no'),
+                    p.get('sigorta_turu'),
+                    p.get('sirket'),
+                    p.get('bitis_tarihi'),
+                    satisci_data.get('ad_soyad', '-'),
+                    p.get('yenileme_durumu', 'Süreç devam ediyor')
+                ))
+        
+        return filtered
+    
+    def musteri_police_detay_getir(self, police_id):
+        """Poliçe ve müşteri bilgilerini birlikte getir (çapraz satış için)"""
+        police = self._get('policeler', filters={'id': police_id})
+        if not police:
+            return None
+        
+        p = police[0]
+        musteri = self._get('musteriler', filters={'id': p.get('musteri_id')})
+        
+        if musteri:
+            m = musteri[0]
+            return (p.get('musteri_id'), m.get('ad_soyad'), m.get('tc_no'), m.get('telefon'))
+        
+        return None
+    
     def close(self):
         """Bağlantıyı kapat (dummy)"""
         pass

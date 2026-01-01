@@ -783,19 +783,11 @@ class SigortaAcenteApp(QMainWindow):
         # Geleceğe kalan_gun_limiti kadar git
         bitis_tarih = bugun + timedelta(days=kalan_gun_limiti)
         
-        # Veritabanından çek
-        self.db.cursor.execute('''
-            SELECT m.ad_soyad, m.telefon, p.police_no, p.sigorta_turu, p.sirket,
-                   p.bitis_tarihi, COALESCE(s.ad_soyad, '-') as satisci,
-                   COALESCE(p.yenileme_durumu, 'Süreç devam ediyor') as yenileme_durumu
-            FROM policeler p
-            JOIN musteriler m ON p.musteri_id = m.id
-            LEFT JOIN satiscilar s ON p.satisci_id = s.id
-            WHERE date(p.bitis_tarihi) BETWEEN date(?) AND date(?)
-            ORDER BY p.bitis_tarihi ASC
-        ''', (baslangic_tarih.strftime("%Y-%m-%d"), bitis_tarih.strftime("%Y-%m-%d")))
-        
-        policeler = self.db.cursor.fetchall()
+        # Veritabanından çek (Supabase ile)
+        policeler = self.db.yenileme_policeleri_getir(
+            baslangic_tarih.strftime("%Y-%m-%d"),
+            bitis_tarih.strftime("%Y-%m-%d")
+        )
         
         # Tüm yenilemeler listesini sakla (filtreleme için)
         self.tum_yenilemeler = []
@@ -1354,52 +1346,55 @@ class SigortaAcenteApp(QMainWindow):
         tur_filtre = self.rapor_tur_combo.currentText()
         sirket_filtre = self.rapor_sirket_combo.currentText()
         
-        # SQL sorgusu - tarih tipine göre
-        query = '''
-            SELECT p.kayit_tarihi, m.ad_soyad, p.police_no, p.sigorta_turu, p.sirket,
-                   p.baslangic_tarihi, p.bitis_tarihi, p.prim_tutari, p.komisyon_tutari,
-                   COALESCE(s.ad_soyad, '-') as satisci
-            FROM policeler p
-            JOIN musteriler m ON p.musteri_id = m.id
-            LEFT JOIN satiscilar s ON p.satisci_id = s.id
-            WHERE 1=1
-        '''
+        # Tüm poliçeleri çek
+        policeler = self.db.police_listesi_getir()
         
-        params = []
+        # Filtreleme
+        filtered_policeler = []
+        for p in policeler:
+            # p formatı: (musteri_ad, police_no, sigorta_turu, sirket, baslangic, bitis, prim, komisyon, satisci)
+            musteri_ad, police_no, sigorta_turu, sirket, baslangic, bitis, prim, komisyon, satisci = p
+            
+            # Müşteri filtresi
+            if musteri_ara and musteri_ara not in musteri_ad.lower():
+                continue
+            
+            # Satışçı filtresi
+            if satisci_filtre != "Tümü" and satisci != satisci_filtre:
+                continue
+            
+            # Tür filtresi
+            if tur_filtre != "Tümü" and sigorta_turu != tur_filtre:
+                continue
+            
+            # Şirket filtresi
+            if sirket_filtre != "Tümü" and sirket != sirket_filtre:
+                continue
+            
+            # Tarih filtresi
+            if tarih_tip == "Poliçe Başlangıç Tarihi":
+                if not (tarih_baslangic <= baslangic <= tarih_bitis):
+                    continue
+            elif tarih_tip == "Poliçe Bitiş Tarihi":
+                if not (tarih_baslangic <= bitis <= tarih_bitis):
+                    continue
+            # Tanzim tarihi filtresini şimdilik atlıyoruz (police_listesi_getir'de yok)
+            
+            # Tuple'ı rapor formatına çevir (kayit_tarihi placeholder olarak baslangic kullanılıyor)
+            filtered_policeler.append((
+                baslangic,  # kayit_tarihi yerine
+                musteri_ad,
+                police_no,
+                sigorta_turu,
+                sirket,
+                baslangic,
+                bitis,
+                prim,
+                komisyon,
+                satisci
+            ))
         
-        # Tarih filtresini ekle
-        if tarih_tip == "Tanzim Tarihi":
-            query += " AND date(p.kayit_tarihi) BETWEEN date(?) AND date(?)"
-            params.extend([tarih_baslangic, tarih_bitis])
-        elif tarih_tip == "Poliçe Başlangıç Tarihi":
-            query += " AND date(p.baslangic_tarihi) BETWEEN date(?) AND date(?)"
-            params.extend([tarih_baslangic, tarih_bitis])
-        else:  # Poliçe Bitiş Tarihi
-            query += " AND date(p.bitis_tarihi) BETWEEN date(?) AND date(?)"
-            params.extend([tarih_baslangic, tarih_bitis])
-        
-        # Ek filtreler
-        if satisci_filtre != "Tümü":
-            query += " AND s.ad_soyad = ?"
-            params.append(satisci_filtre)
-        
-        if tur_filtre != "Tümü":
-            query += " AND p.sigorta_turu = ?"
-            params.append(tur_filtre)
-        
-        if sirket_filtre != "Tümü":
-            query += " AND p.sirket = ?"
-            params.append(sirket_filtre)
-        
-        query += " ORDER BY p.kayit_tarihi DESC"
-        
-        # Sorguyu çalıştır
-        self.db.cursor.execute(query, params)
-        policeler = self.db.cursor.fetchall()
-        
-        # Müşteri filtreleme (SQL'de LIKE yerine Python'da)
-        if musteri_ara:
-            policeler = [p for p in policeler if musteri_ara in p[1].lower()]
+        policeler = filtered_policeler
         
         # Tabloyu temizle
         self.rapor_table.setRowCount(0)
@@ -1526,9 +1521,17 @@ class SigortaAcenteApp(QMainWindow):
             QMessageBox.critical(self, "Hata", message)
             return
         
-        # Müşteri ID'sini al
-        self.db.cursor.execute("SELECT id FROM musteriler WHERE tc_no = ?", (tc_no,))
-        musteri_id = self.db.cursor.fetchone()[0]
+        # Müşteri ID'sini al (Supabase ile)
+        musteriler = self.db.musterileri_getir()
+        musteri_id = None
+        for m in musteriler:
+            if m[2] == tc_no:  # tc_no index 2'de
+                musteri_id = m[0]  # id index 0'da
+                break
+        
+        if not musteri_id:
+            QMessageBox.critical(self, "Hata", "Müşteri ID alınamadı!")
+            return
         
         # Poliçeyi ekle
         try:
@@ -2212,15 +2215,9 @@ class SigortaAcenteApp(QMainWindow):
     
     def capraz_satis_police_ekle(self, mevcut_police_id, oneri_turu):
         """Çapraz satış önerisi için yeni poliçe ekleme penceresi aç"""
-        # Mevcut poliçe bilgilerini al
-        self.db.cursor.execute('''
-            SELECT p.musteri_id, m.ad_soyad, m.tc_no, m.telefon
-            FROM policeler p
-            JOIN musteriler m ON p.musteri_id = m.id
-            WHERE p.id = ?
-        ''', (mevcut_police_id,))
+        # Mevcut poliçe bilgilerini al (Supabase ile)
+        result = self.db.musteri_police_detay_getir(mevcut_police_id)
         
-        result = self.db.cursor.fetchone()
         if not result:
             QMessageBox.warning(self, "Hata", "Müşteri bilgileri bulunamadı!")
             return
