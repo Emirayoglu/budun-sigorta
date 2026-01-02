@@ -53,7 +53,7 @@ def get_musteriler():
         return jsonify({
             'success': True,
             'data': [
-                {'id': m[0], 'ad_soyad': m[1], 'tc_no': m[2]}
+                {'id': m.get('id'), 'ad_soyad': m.get('ad_soyad'), 'tc_no': m.get('tc_no', '')}
                 for m in musteriler
             ]
         })
@@ -106,7 +106,7 @@ def get_satiscilar():
         return jsonify({
             'success': True,
             'data': [
-                {'id': s[0], 'ad_soyad': s[1]}
+                {'id': s.get('id'), 'ad_soyad': s.get('ad_soyad'), 'komisyon_orani': s.get('komisyon_orani', 0)}
                 for s in satiscilar
             ]
         })

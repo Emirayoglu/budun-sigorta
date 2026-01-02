@@ -189,9 +189,9 @@ class SupabaseDB:
         return musteriler  # Direkt dict listesi dön
     
     def satiscilari_getir(self):
-        """Aktif satışçıları getir"""
+        """Aktif satışçıları getir - DICT FORMAT"""
         satiscilar = self._get('satiscilar', filters={'durum': 'Aktif'}, order='ad_soyad.asc')
-        return [(s['id'], s['ad_soyad'], s.get('komisyon_orani', 0)) for s in satiscilar]
+        return satiscilar  # Direkt dict listesi dön
     
     def police_detay_getir(self, police_id):
         """Poliçe detaylarını getir (ID ile)"""

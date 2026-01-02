@@ -945,9 +945,9 @@ class SigortaAcenteApp(QMainWindow):
             satisci_adi = '-'
             if satisci_id:
                 satiscilar = self.db.satiscilari_getir()
-                for s_id, s_ad, s_komisyon in satiscilar:
-                    if s_id == satisci_id:
-                        satisci_adi = s_ad
+                for s in satiscilar:
+                    if s.get('id') == satisci_id:
+                        satisci_adi = s.get('ad_soyad', '-')
                         break
             
             # Satışçı
@@ -1172,8 +1172,8 @@ class SigortaAcenteApp(QMainWindow):
         self.rapor_satisci_combo = QComboBox()
         self.rapor_satisci_combo.addItem("Tümü")
         satiscilar = self.db.satiscilari_getir()
-        for satisci_id, ad_soyad, komisyon_orani in satiscilar:  # 3 değer
-            self.rapor_satisci_combo.addItem(ad_soyad, satisci_id)
+        for s in satiscilar:
+            self.rapor_satisci_combo.addItem(s.get('ad_soyad'), s.get('id'))
         form.addRow(self.rapor_satisci_combo)
         
         # Poliçe türü
@@ -1512,8 +1512,8 @@ class SigortaAcenteApp(QMainWindow):
         """Satışçıları combo box'a yükle"""
         self.satisci_combo.clear()
         satiscilar = self.db.satiscilari_getir()
-        for satisci_id, ad_soyad, komisyon_orani in satiscilar:  # 3 değer
-            self.satisci_combo.addItem(ad_soyad, satisci_id)
+        for s in satiscilar:
+            self.satisci_combo.addItem(s.get('ad_soyad'), s.get('id'))
     
     def baslangic_tarihi_degisti(self, tarih):
         """Başlangıç tarihi değiştiğinde bitiş tarihini otomatik ayarla"""
@@ -2432,8 +2432,8 @@ class PoliceDetayDialog(QDialog):
         self.satisci_combo_dialog = QComboBox()
         self.satisci_combo_dialog.addItem("Seçiniz", None)
         satiscilar = self.db.satiscilari_getir()
-        for satisci_id, ad_soyad, komisyon_orani in satiscilar:  # 3 değer
-            self.satisci_combo_dialog.addItem(ad_soyad, satisci_id)
+        for s in satiscilar:
+            self.satisci_combo_dialog.addItem(s.get('ad_soyad'), s.get('id'))
         police_layout.addRow("Satışçı:", self.satisci_combo_dialog)
         
         layout.addWidget(police_group)
@@ -2559,9 +2559,9 @@ class PoliceDetayDialog(QDialog):
         satisci_data = {}
         if satisci_id:
             satiscilar = self.db.satiscilari_getir()
-            for s_id, s_ad, s_komisyon in satiscilar:
-                if s_id == satisci_id:
-                    satisci_data = {'id': s_id, 'ad_soyad': s_ad, 'komisyon_orani': s_komisyon}
+            for s in satiscilar:
+                if s.get('id') == satisci_id:
+                    satisci_data = s
                     break
         
         # Müşteri bilgileri
@@ -3002,7 +3002,7 @@ class CaprazSatisPoliceEkleDialog(QDialog):
         
         # Varsayılan satışçıyı al
         satiscilar = self.db.satiscilari_getir()
-        satisci_id = satiscilar[0][0] if satiscilar else None
+        satisci_id = satiscilar[0].get('id') if satiscilar else None
         
         # Poliçeyi ekle
         success, message = self.db.police_ekle(
