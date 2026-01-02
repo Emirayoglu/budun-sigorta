@@ -995,6 +995,20 @@ class SigortaAcenteApp(QMainWindow):
                     border: 2px solid #1976d2;
                     padding: 5px;
                 }}
+                QComboBox QAbstractItemView::item {{
+                    color: #000000;
+                    background-color: white;
+                    padding: 8px;
+                    min-height: 25px;
+                }}
+                QComboBox QAbstractItemView::item:selected {{
+                    background-color: #1976d2;
+                    color: white;
+                }}
+                QComboBox QAbstractItemView::item:hover {{
+                    background-color: #e3f2fd;
+                    color: #000000;
+                }}
             """)
             
             # Police ID'yi data olarak sakla
