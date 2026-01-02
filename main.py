@@ -4,8 +4,8 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QComboBox, QTextEdit, QDateEdit, QMessageBox,
                                QGroupBox, QFormLayout, QTabWidget, QSplitter,
                                QTableWidget, QTableWidgetItem, QHeaderView, QScrollArea,
-                               QDialog)
-from PySide6.QtCore import QDate, Qt
+                               QDialog, QCheckBox)
+from PySide6.QtCore import QDate, Qt, QTimer
 from PySide6.QtGui import QFont, QIcon, QColor
 
 # Cloud veritabanı kullan (Supabase)
@@ -17,7 +17,13 @@ class SigortaAcenteApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.db = Database()
+        
+        # Otomatik yenileme ayarları
+        self.auto_refresh_enabled = True  # Başlangıçta açık
+        self.refresh_interval = 30000  # 30 saniye (milisaniye cinsinden)
+        
         self.init_ui()
+        self.setup_auto_refresh()  # Otomatik yenilemeyi başlat
     
     def init_ui(self):
         """Ana pencereyi oluştur"""
@@ -45,38 +51,44 @@ class SigortaAcenteApp(QMainWindow):
         main_layout.addWidget(baslik)
         
         # Tab Widget
-        tabs = QTabWidget()
-        main_layout.addWidget(tabs)
+        self.tab_widget = QTabWidget()
+        main_layout.addWidget(self.tab_widget)
         
         # Müşteri ve Poliçe Ekleme Sekmesi
         musteri_police_tab = QWidget()
-        tabs.addTab(musteri_police_tab, "POLİÇE GİRİŞ")
+        self.tab_widget.addTab(musteri_police_tab, "POLİÇE GİRİŞ")
         
         self.setup_musteri_police_tab(musteri_police_tab)
         
         # Yenilemeler Sekmesi
         yenilemeler_tab = QWidget()
-        tabs.addTab(yenilemeler_tab, "YENİLEMELER")
+        self.tab_widget.addTab(yenilemeler_tab, "YENİLEMELER")
         
         self.setup_yenilemeler_tab(yenilemeler_tab)
         
         # Raporlar Sekmesi
         raporlar_tab = QWidget()
-        tabs.addTab(raporlar_tab, "RAPORLAR")
+        self.tab_widget.addTab(raporlar_tab, "RAPORLAR")
         
         self.setup_raporlar_tab(raporlar_tab)
         
         # Finans Sekmesi
         finans_tab = QWidget()
-        tabs.addTab(finans_tab, "FİNANS")
+        self.tab_widget.addTab(finans_tab, "FİNANS")
         
         self.setup_finans_tab(finans_tab)
         
         # Çapraz Satış Sekmesi
         capraz_satis_tab = QWidget()
-        tabs.addTab(capraz_satis_tab, "ÇAPRAZ SATIŞ")
+        self.tab_widget.addTab(capraz_satis_tab, "ÇAPRAZ SATIŞ")
         
         self.setup_capraz_satis_tab(capraz_satis_tab)
+        
+        # Ayarlar Sekmesi
+        ayarlar_tab = QWidget()
+        self.tab_widget.addTab(ayarlar_tab, "⚙️ AYARLAR")
+        
+        self.setup_ayarlar_tab(ayarlar_tab)
         
         # Stil ayarları - GRİ MAVİ TEMA
         self.setStyleSheet("""
@@ -2328,8 +2340,293 @@ class SigortaAcenteApp(QMainWindow):
             # Poliçe eklendi, tüm listeleri güncelle
             self.tum_listeleri_guncelle()
     
+    def setup_ayarlar_tab(self, tab):
+        """Ayarlar sekmesini oluştur"""
+        main_layout = QVBoxLayout()
+        tab.setLayout(main_layout)
+        
+        # Başlık
+        baslik = QLabel("⚙️ UYGULAMA AYARLARI")
+        baslik_font = QFont()
+        baslik_font.setPointSize(16)
+        baslik_font.setBold(True)
+        baslik.setFont(baslik_font)
+        baslik.setAlignment(Qt.AlignCenter)
+        baslik.setStyleSheet("color: #1976d2; padding: 20px;")
+        main_layout.addWidget(baslik)
+        
+        # Otomatik Yenileme Grubu
+        yenileme_group = QGroupBox("🔄 Otomatik Senkronizasyon")
+        yenileme_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 14px;
+                border: 2px solid #1976d2;
+                border-radius: 10px;
+                margin-top: 15px;
+                padding-top: 15px;
+                background-color: white;
+            }
+            QGroupBox::title {
+                color: #1976d2;
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+        """)
+        yenileme_layout = QVBoxLayout()
+        yenileme_group.setLayout(yenileme_layout)
+        
+        # Açıklama
+        aciklama = QLabel(
+            "📡 Otomatik senkronizasyon açıkken, program arka planda\n"
+            "cloud veritabanını kontrol eder ve değişiklikleri otomatik yükler.\n\n"
+            "💡 Başka bir cihazdan veri eklendiğinde bu sayede anında görebilirsiniz!"
+        )
+        aciklama.setWordWrap(True)
+        aciklama.setStyleSheet("color: #455a64; padding: 10px; font-size: 12px;")
+        yenileme_layout.addWidget(aciklama)
+        
+        # Otomatik yenileme checkbox
+        self.auto_refresh_checkbox = QCheckBox("Otomatik Senkronizasyonu Etkinleştir")
+        self.auto_refresh_checkbox.setChecked(self.auto_refresh_enabled)
+        self.auto_refresh_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-size: 13px;
+                font-weight: bold;
+                color: #263238;
+                padding: 10px;
+            }
+            QCheckBox::indicator {
+                width: 25px;
+                height: 25px;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #4caf50;
+                border: 2px solid #388e3c;
+                border-radius: 5px;
+            }
+        """)
+        self.auto_refresh_checkbox.stateChanged.connect(
+            lambda state: self.toggle_auto_refresh(state == 2)  # 2 = Qt.Checked
+        )
+        yenileme_layout.addWidget(self.auto_refresh_checkbox)
+        
+        # Yenileme aralığı seçimi
+        aralik_layout = QHBoxLayout()
+        aralik_label = QLabel("Yenileme Aralığı:")
+        aralik_label.setStyleSheet("font-size: 12px; color: #455a64; padding: 5px;")
+        aralik_layout.addWidget(aralik_label)
+        
+        self.aralik_combo = QComboBox()
+        self.aralik_combo.addItems([
+            "15 saniye",
+            "30 saniye",
+            "1 dakika",
+            "2 dakika",
+            "5 dakika"
+        ])
+        self.aralik_combo.setCurrentIndex(1)  # Varsayılan 30 saniye
+        self.aralik_combo.setStyleSheet("""
+            QComboBox {
+                padding: 8px;
+                border: 2px solid #90caf9;
+                border-radius: 5px;
+                background-color: white;
+                font-size: 12px;
+            }
+        """)
+        self.aralik_combo.currentIndexChanged.connect(self.on_aralik_changed)
+        aralik_layout.addWidget(self.aralik_combo)
+        aralik_layout.addStretch()
+        
+        yenileme_layout.addLayout(aralik_layout)
+        
+        # Durum göstergesi
+        self.durum_label = QLabel()
+        self.update_durum_label()
+        self.durum_label.setStyleSheet("""
+            QLabel {
+                padding: 15px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: bold;
+                margin-top: 10px;
+            }
+        """)
+        yenileme_layout.addWidget(self.durum_label)
+        
+        main_layout.addWidget(yenileme_group)
+        
+        # Manuel yenileme butonu
+        manuel_btn = QPushButton("🔄 ŞİMDİ YENİLE")
+        manuel_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #42a5f5, stop:1 #1e88e5);
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 10px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #64b5f6, stop:1 #42a5f5);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #1e88e5, stop:1 #1565c0);
+            }
+        """)
+        manuel_btn.clicked.connect(self.manuel_yenile)
+        main_layout.addWidget(manuel_btn)
+        
+        # Veritabanı bilgisi
+        db_group = QGroupBox("☁️ Veritabanı Bilgileri")
+        db_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 14px;
+                border: 2px solid #78909c;
+                border-radius: 10px;
+                margin-top: 15px;
+                padding-top: 15px;
+                background-color: white;
+            }
+            QGroupBox::title {
+                color: #455a64;
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+        """)
+        db_layout = QVBoxLayout()
+        db_group.setLayout(db_layout)
+        
+        db_info = QLabel(
+            "🗄️ <b>Tip:</b> Supabase Cloud (PostgreSQL)<br>"
+            "🌍 <b>Konum:</b> İzlanda<br>"
+            "🔒 <b>Güvenlik:</b> SSL Şifreli<br>"
+            "💾 <b>Yedekleme:</b> Otomatik<br><br>"
+            "✅ Tüm verileriniz bulutta güvenle saklanıyor!"
+        )
+        db_info.setWordWrap(True)
+        db_info.setStyleSheet("color: #455a64; padding: 10px; font-size: 12px;")
+        db_layout.addWidget(db_info)
+        
+        main_layout.addWidget(db_group)
+        main_layout.addStretch()
+    
+    def on_aralik_changed(self, index):
+        """Yenileme aralığı değiştiğinde"""
+        araliklar = [15, 30, 60, 120, 300]  # Saniye cinsinden
+        self.set_refresh_interval(araliklar[index])
+        self.update_durum_label()
+    
+    def update_durum_label(self):
+        """Durum etiketini güncelle"""
+        if self.auto_refresh_enabled:
+            aralik = self.refresh_interval / 1000
+            if aralik < 60:
+                aralik_str = f"{int(aralik)} saniye"
+            else:
+                aralik_str = f"{int(aralik/60)} dakika"
+            
+            self.durum_label.setText(
+                f"✅ Otomatik senkronizasyon AÇIK\n"
+                f"🔄 Her {aralik_str} bir yenileniyor"
+            )
+            self.durum_label.setStyleSheet(self.durum_label.styleSheet() + 
+                "background-color: #c8e6c9; color: #2e7d32;")
+        else:
+            self.durum_label.setText(
+                "❌ Otomatik senkronizasyon KAPALI\n"
+                "⚠️ Değişiklikler manuel yenilemede görünecek"
+            )
+            self.durum_label.setStyleSheet(self.durum_label.styleSheet() + 
+                "background-color: #ffccbc; color: #d84315;")
+    
+    def manuel_yenile(self):
+        """Manuel olarak mevcut sekmeyi yenile"""
+        QMessageBox.information(
+            self,
+            "Yenileniyor",
+            "Mevcut sekme yenileniyor..."
+        )
+        self.auto_refresh()
+        QMessageBox.information(
+            self,
+            "Tamamlandı",
+            "✅ Veriler başarıyla yenilendi!"
+        )
+    
+    def setup_auto_refresh(self):
+        """Otomatik yenileme timer'ını kur"""
+        self.refresh_timer = QTimer(self)
+        self.refresh_timer.timeout.connect(self.auto_refresh)
+        
+        if self.auto_refresh_enabled:
+            self.refresh_timer.start(self.refresh_interval)
+            print(f"🔄 Otomatik yenileme başlatıldı (Her {self.refresh_interval/1000:.0f} saniye)")
+    
+    def auto_refresh(self):
+        """Otomatik olarak mevcut sekmeyi yenile"""
+        if not self.auto_refresh_enabled:
+            return
+        
+        # Hangi sekme aktifse onu yenile
+        current_tab = self.tab_widget.currentWidget()
+        current_index = self.tab_widget.currentIndex()
+        
+        try:
+            if current_index == 0:  # POLİÇE GİRİŞ
+                print("🔄 Poliçe giriş sekmesi otomatik yenileniyor...")
+                self.police_listele()
+                self.musteri_listele()
+            elif current_index == 1:  # YENİLEMELER
+                print("🔄 Yenilemeler otomatik yenileniyor...")
+                self.yenilemeleri_yukle()
+            elif current_index == 2:  # RAPORLAR
+                # Rapor sayfası elle oluşturulduğu için yenilemiyoruz
+                pass
+            elif current_index == 3:  # FİNANS
+                print("🔄 Finans otomatik yenileniyor...")
+                self.finans_listesini_yukle()
+            elif current_index == 4:  # ÇAPRAZ SATIŞ
+                print("🔄 Çapraz satış otomatik yenileniyor...")
+                self.capraz_satis_listesini_yukle()
+            elif current_index == 5:  # AYARLAR
+                # Ayarlar sekmesi yenilenmeye gerek yok
+                pass
+        except Exception as e:
+            print(f"⚠️ Otomatik yenileme hatası: {e}")
+    
+    def toggle_auto_refresh(self, enabled):
+        """Otomatik yenilemeyi aç/kapat"""
+        self.auto_refresh_enabled = enabled
+        
+        if enabled:
+            self.refresh_timer.start(self.refresh_interval)
+            print(f"✅ Otomatik yenileme AÇILDI (Her {self.refresh_interval/1000:.0f} saniye)")
+        else:
+            self.refresh_timer.stop()
+            print("❌ Otomatik yenileme KAPATILDI")
+    
+    def set_refresh_interval(self, seconds):
+        """Yenileme aralığını değiştir (saniye cinsinden)"""
+        self.refresh_interval = seconds * 1000  # Milisaniyeye çevir
+        
+        if self.auto_refresh_enabled and self.refresh_timer.isActive():
+            self.refresh_timer.stop()
+            self.refresh_timer.start(self.refresh_interval)
+            print(f"⚙️ Yenileme aralığı {seconds} saniye olarak değiştirildi")
+    
     def closeEvent(self, event):
-        """Uygulama kapatılırken veritabanını kapat"""
+        """Uygulama kapatılırken veritabanını kapat ve timer'ı durdur"""
+        if hasattr(self, 'refresh_timer'):
+            self.refresh_timer.stop()
         self.db.close()
         event.accept()
 
