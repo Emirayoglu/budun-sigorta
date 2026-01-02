@@ -1738,13 +1738,8 @@ class SigortaAcenteApp(QMainWindow):
             
             police_no = police_no_item.text()
             
-            # Poliçe ID'sini al (police_no'dan Supabase'den bul)
-            policeler = self.db.get_policeler()
-            police_data = None
-            for p in policeler:
-                if p.get('police_no') == police_no:
-                    police_data = p
-                    break
+            # Poliçe verisini direkt Supabase'den al (DICT FORMAT)
+            police_data = self.db.police_no_ile_getir(police_no)
             
             if not police_data:
                 QMessageBox.warning(self, "Uyarı", "Poliçe bulunamadı!")
@@ -1775,31 +1770,6 @@ class SigortaAcenteApp(QMainWindow):
         self.odeme_sekli_combo.setCurrentIndex(0)
         self.satisci_combo.setCurrentIndex(0)
         self.ad_soyad_input.setFocus()
-    
-    def police_detay_ac(self, item):
-        """Poliçe detay penceresini aç"""
-        try:
-            # Tıklanan satırın poliçe numarasını al
-            row = item.row()
-            police_no_item = self.police_table.item(row, 1)
-            
-            if not police_no_item:
-                QMessageBox.warning(self, "Hata", "Poliçe bilgisi bulunamadı!")
-                return
-            
-            police_no = police_no_item.text()
-            
-            if not police_no:
-                QMessageBox.warning(self, "Hata", "Poliçe numarası bulunamadı!")
-                return
-            
-            # Detay penceresini aç
-            dialog = PoliceDetayDialog(self, police_no, self.db)
-            if dialog.exec():
-                # Dialog kapandığında tüm listeleri güncelle
-                self.tum_listeleri_guncelle()
-        except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Poliçe detayı açılırken hata oluştu:\n{str(e)}")
     
     def setup_finans_tab(self, tab):
         """Finans sekmesini oluştur - Nakit ödeme borç takibi"""

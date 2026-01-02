@@ -194,8 +194,15 @@ class SupabaseDB:
         return [(s['id'], s['ad_soyad'], s.get('komisyon_orani', 0)) for s in satiscilar]
     
     def police_detay_getir(self, police_id):
-        """Poliçe detaylarını getir"""
+        """Poliçe detaylarını getir (ID ile)"""
         police = self._get('policeler', filters={'id': police_id})
+        if police:
+            return police[0]
+        return None
+    
+    def police_no_ile_getir(self, police_no):
+        """Poliçe detaylarını getir (Poliçe No ile)"""
+        police = self._get('policeler', filters={'police_no': police_no})
         if police:
             return police[0]
         return None
