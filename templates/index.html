@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUDUN Sigorta Yönetim</title>
+    <title>BUDUN Sigorta - Mobil Yönetim</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -49,20 +49,22 @@
             margin-bottom: 20px;
             overflow-x: auto;
             padding: 5px;
+            flex-wrap: wrap;
         }
 
         .tab-btn {
             background: white;
             border: none;
-            padding: 15px 25px;
+            padding: 15px 20px;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: #667eea;
             transition: all 0.3s;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             white-space: nowrap;
+            flex: 0 0 auto;
         }
 
         .tab-btn.active {
@@ -86,6 +88,12 @@
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .form-group {
@@ -97,20 +105,29 @@
             margin-bottom: 5px;
             color: #333;
             font-weight: bold;
+            font-size: 14px;
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 16px;
             transition: border 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
         }
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -133,8 +150,24 @@
             transform: scale(0.95);
         }
 
-        .police-list {
-            margin-top: 20px;
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+            display: inline-block;
+            margin: 5px;
         }
 
         .police-card {
@@ -143,11 +176,19 @@
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .police-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .police-card h3 {
             color: #667eea;
             margin-bottom: 10px;
+            font-size: 18px;
         }
 
         .police-card p {
@@ -182,125 +223,377 @@
             border: 1px solid #f5c6cb;
         }
 
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-info { background: #d1ecf1; color: #0c5460; }
+
+        .filters {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filters-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.5em;
             }
 
             .tab-btn {
-                padding: 12px 20px;
-                font-size: 14px;
+                padding: 12px 15px;
+                font-size: 12px;
             }
 
             .content {
                 padding: 15px;
             }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .filters-row {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 14px;
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📱 BUDUN Sigorta</h1>
-            <p>Her Yerden Erişim - Mobil Yönetim</p>
+            <h1>📱 BUDUN SİGORTA</h1>
+            <p>Mobil Yönetim Sistemi - Her Yerden Erişim</p>
         </div>
 
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('policeler')">📋 Poliçeler</button>
-            <button class="tab-btn" onclick="showTab('musteri-ekle')">➕ Müşteri Ekle</button>
-            <button class="tab-btn" onclick="showTab('police-ekle')">📝 Poliçe Ekle</button>
+            <button class="tab-btn" onclick="showTab('musteri-ekle')">➕ Müşteri</button>
+            <button class="tab-btn" onclick="showTab('police-ekle')">📝 Poliçe</button>
+            <button class="tab-btn" onclick="showTab('yenilemeler')">🔄 Yenilemeler</button>
+            <button class="tab-btn" onclick="showTab('finans')">💰 Finans</button>
+            <button class="tab-btn" onclick="showTab('raporlar')">📊 Raporlar</button>
+            <button class="tab-btn" onclick="showTab('capraz-satis')">🎯 Çapraz Satış</button>
         </div>
 
         <div class="content">
-            <!-- Poliçeler Tab -->
+            <!-- POLİÇELER TAB -->
             <div id="policeler" class="tab-content active">
-                <h2>Kayıtlı Poliçeler</h2>
-                <div id="police-list" class="police-list">
-                    <div class="loading">Yükleniyor...</div>
-                </div>
+                <h2>📋 Kayıtlı Poliçeler</h2>
+                <div id="police-list" class="loading">Yükleniyor...</div>
             </div>
 
-            <!-- Müşteri Ekle Tab -->
+            <!-- MÜŞTERİ EKLE TAB -->
             <div id="musteri-ekle" class="tab-content">
-                <h2>Yeni Müşteri Ekle</h2>
+                <h2>➕ Yeni Müşteri Ekle</h2>
                 <div id="musteri-alert"></div>
                 <form onsubmit="musteriEkle(event)">
-                    <div class="form-group">
-                        <label>Ad Soyad *</label>
-                        <input type="text" id="m_ad_soyad" required>
-                    </div>
-                    <div class="form-group">
-                        <label>TC No</label>
-                        <input type="text" id="m_tc_no" maxlength="11">
-                    </div>
-                    <div class="form-group">
-                        <label>Telefon</label>
-                        <input type="tel" id="m_telefon">
-                    </div>
-                    <div class="form-group">
-                        <label>E-mail</label>
-                        <input type="email" id="m_email">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Ad Soyad *</label>
+                            <input type="text" id="m_ad_soyad" required>
+                        </div>
+                        <div class="form-group">
+                            <label>TC No</label>
+                            <input type="text" id="m_tc_no" maxlength="11">
+                        </div>
+                        <div class="form-group">
+                            <label>Telefon</label>
+                            <input type="tel" id="m_telefon">
+                        </div>
+                        <div class="form-group">
+                            <label>E-mail</label>
+                            <input type="email" id="m_email">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Adres</label>
-                        <input type="text" id="m_adres">
+                        <textarea id="m_adres"></textarea>
                     </div>
                     <button type="submit" class="btn">💾 Müşteri Kaydet</button>
                 </form>
             </div>
 
-            <!-- Poliçe Ekle Tab -->
+            <!-- POLİÇE EKLE TAB -->
             <div id="police-ekle" class="tab-content">
-                <h2>Yeni Poliçe Ekle</h2>
+                <h2>📝 Yeni Poliçe Ekle</h2>
                 <div id="police-alert"></div>
                 <form onsubmit="policeEkle(event)">
-                    <div class="form-group">
-                        <label>Müşteri *</label>
-                        <select id="p_musteri_id" required>
-                            <option value="">Seçiniz</option>
-                        </select>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Müşteri *</label>
+                            <select id="p_musteri_id" required>
+                                <option value="">Seçiniz</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Poliçe No *</label>
+                            <input type="text" id="p_police_no" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sigorta Türü *</label>
+                            <select id="p_sigorta_turu" required>
+                                <option>Kasko</option>
+                                <option>Trafik</option>
+                                <option>Konut</option>
+                                <option>İşyeri</option>
+                                <option>Sağlık</option>
+                                <option>Hayat</option>
+                                <option>Dask</option>
+                                <option>Seyahat</option>
+                                <option>Ferdi Kaza</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Şirket *</label>
+                            <input type="text" id="p_sirket" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Başlangıç Tarihi *</label>
+                            <input type="date" id="p_baslangic" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bitiş Tarihi *</label>
+                            <input type="date" id="p_bitis" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Prim Tutarı (₺)</label>
+                            <input type="number" id="p_prim" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Komisyon Tutarı (₺)</label>
+                            <input type="number" id="p_komisyon" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Satışçı</label>
+                            <select id="p_satisci">
+                                <option value="">Seçiniz</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ödeme Şekli</label>
+                            <select id="p_odeme">
+                                <option>Nakit</option>
+                                <option>Kredi Kartı</option>
+                                <option>Havale</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Poliçe No *</label>
-                        <input type="text" id="p_police_no" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Sigorta Türü *</label>
-                        <select id="p_sigorta_turu" required>
-                            <option>Kasko</option>
-                            <option>Trafik</option>
-                            <option>Konut</option>
-                            <option>İşyeri</option>
-                            <option>Sağlık</option>
-                            <option>Hayat</option>
-                            <option>Dask</option>
-                            <option>Seyahat</option>
-                            <option>Ferdi Kaza</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Şirket *</label>
-                        <input type="text" id="p_sirket" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Başlangıç Tarihi *</label>
-                        <input type="date" id="p_baslangic" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Bitiş Tarihi *</label>
-                        <input type="date" id="p_bitis" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Prim Tutarı (₺)</label>
-                        <input type="number" id="p_prim" step="0.01">
+                        <label>Açıklama</label>
+                        <textarea id="p_aciklama"></textarea>
                     </div>
                     <button type="submit" class="btn">💾 Poliçe Kaydet</button>
                 </form>
             </div>
+
+            <!-- YENİLEMELER TAB -->
+            <div id="yenilemeler" class="tab-content">
+                <h2>🔄 Yenileme Takibi</h2>
+                <div id="yenileme-list" class="loading">Yükleniyor...</div>
+            </div>
+
+            <!-- FİNANS TAB -->
+            <div id="finans" class="tab-content">
+                <h2>💰 Finans - Nakit Borç Takibi</h2>
+                <div id="finans-list" class="loading">Yükleniyor...</div>
+            </div>
+
+            <!-- RAPORLAR TAB -->
+            <div id="raporlar" class="tab-content">
+                <h2>📊 Raporlar</h2>
+                <div class="filters">
+                    <div class="filters-row">
+                        <div class="form-group">
+                            <label>Başlangıç Tarihi</label>
+                            <input type="date" id="r_baslangic">
+                        </div>
+                        <div class="form-group">
+                            <label>Bitiş Tarihi</label>
+                            <input type="date" id="r_bitis">
+                        </div>
+                        <div class="form-group">
+                            <label>Satışçı</label>
+                            <select id="r_satisci">
+                                <option value="">Tümü</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sigorta Türü</label>
+                            <select id="r_tur">
+                                <option value="">Tümü</option>
+                                <option>Kasko</option>
+                                <option>Trafik</option>
+                                <option>Konut</option>
+                                <option>İşyeri</option>
+                                <option>Sağlık</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="raporOlustur()">📊 Rapor Oluştur</button>
+                </div>
+                <div id="rapor-sonuc"></div>
+            </div>
+
+            <!-- ÇAPRAZ SATIŞ TAB -->
+            <div id="capraz-satis" class="tab-content">
+                <h2>🎯 Çapraz Satış Fırsatları</h2>
+                <div class="form-group">
+                    <label>Müşteri Seçin</label>
+                    <select id="cs_musteri" onchange="caprazSatisGoster()">
+                        <option value="">Seçiniz</option>
+                    </select>
+                </div>
+                <div id="capraz-satis-sonuc"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POLİÇE DETAY MODAL -->
+    <div id="policeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>📋 Poliçe Detayı</h2>
+            <div id="police-detay-content"></div>
         </div>
     </div>
 
     <script>
+        let currentPoliceler = [];
+        let currentMusteriler = [];
+        let currentSatiscilar = [];
+
         // Tab değiştirme
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -312,11 +605,20 @@
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
 
-            if (tabId === 'policeler') {
-                loadPoliceler();
-            } else if (tabId === 'police-ekle') {
-                loadMusteriler();
-            }
+            // Tab'a göre veri yükle
+            if (tabId === 'policeler') loadPoliceler();
+            else if (tabId === 'police-ekle') loadDropdowns();
+            else if (tabId === 'yenilemeler') loadYenilemeler();
+            else if (tabId === 'finans') loadFinans();
+            else if (tabId === 'raporlar') loadRaporDropdowns();
+            else if (tabId === 'capraz-satis') loadCaprazSatisDropdowns();
+        }
+
+        // Alert göster
+        function showAlert(elementId, message, type = 'success') {
+            const alertDiv = document.getElementById(elementId);
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => alertDiv.innerHTML = '', 3000);
         }
 
         // Poliçeleri yükle
@@ -328,22 +630,162 @@
                 const listDiv = document.getElementById('police-list');
                 
                 if (data.success && data.data.length > 0) {
-                    listDiv.innerHTML = data.data.map(p => `
-                        <div class="police-card">
+                    currentPoliceler = data.data;
+                    listDiv.innerHTML = data.data.map((p, idx) => `
+                        <div class="police-card" onclick="showPoliceDetay('${p.police_no}')">
                             <h3>🔖 ${p.police_no}</h3>
                             <p><strong>Müşteri:</strong> ${p.musteri}</p>
                             <p><strong>Tür:</strong> ${p.sigorta_turu} - ${p.sirket}</p>
                             <p><strong>Süre:</strong> ${p.baslangic} → ${p.bitis}</p>
-                            <p><strong>Prim:</strong> ${p.prim.toFixed(2)} ₺</p>
+                            <p><strong>Prim:</strong> ${p.prim ? p.prim.toFixed(2) : '0.00'} ₺ | <strong>Komisyon:</strong> ${p.komisyon ? p.komisyon.toFixed(2) : '0.00'} ₺</p>
+                            <p><strong>Satışçı:</strong> ${p.satisci || '-'}</p>
                         </div>
                     `).join('');
                 } else {
-                    listDiv.innerHTML = '<p style="text-align:center; color:#999;">Henüz poliçe yok</p>';
+                    listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>Henüz poliçe yok</p></div>';
                 }
             } catch (error) {
                 document.getElementById('police-list').innerHTML = 
-                    '<p style="text-align:center; color:red;">Yükleme hatası!</p>';
+                    '<div class="alert alert-error">❌ Yükleme hatası!</div>';
             }
+        }
+
+        // Poliçe detayını göster
+        async function showPoliceDetay(policeNo) {
+            try {
+                const response = await fetch(`/api/police/${policeNo}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const p = result.data;
+                    const modal = document.getElementById('policeModal');
+                    const content = document.getElementById('police-detay-content');
+                    
+                    content.innerHTML = `
+                        <form onsubmit="policeGuncelle(event, ${p.id})">
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Poliçe No</label>
+                                    <input type="text" id="edit_police_no" value="${p.police_no}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Sigorta Türü</label>
+                                    <input type="text" id="edit_sigorta_turu" value="${p.sigorta_turu}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Şirket</label>
+                                    <input type="text" id="edit_sirket" value="${p.sirket}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Başlangıç</label>
+                                    <input type="date" id="edit_baslangic" value="${p.baslangic_tarihi}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Bitiş</label>
+                                    <input type="date" id="edit_bitis" value="${p.bitis_tarihi}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Prim</label>
+                                    <input type="number" id="edit_prim" value="${p.prim_tutari || 0}" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Komisyon</label>
+                                    <input type="number" id="edit_komisyon" value="${p.komisyon_tutari || 0}" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Ödeme Şekli</label>
+                                    <select id="edit_odeme">
+                                        <option ${p.odeme_sekli === 'Nakit' ? 'selected' : ''}>Nakit</option>
+                                        <option ${p.odeme_sekli === 'Kredi Kartı' ? 'selected' : ''}>Kredi Kartı</option>
+                                        <option ${p.odeme_sekli === 'Havale' ? 'selected' : ''}>Havale</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Açıklama</label>
+                                <textarea id="edit_aciklama">${p.aciklama || ''}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">💾 Güncelle</button>
+                            <button type="button" class="btn btn-danger" onclick="policeSil(${p.id})">🗑️ Sil</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">❌ Kapat</button>
+                        </form>
+                    `;
+                    
+                    modal.style.display = 'block';
+                }
+            } catch (error) {
+                alert('Poliçe detayı yüklenemedi!');
+            }
+        }
+
+        // Poliçe güncelle
+        async function policeGuncelle(e, policeId) {
+            e.preventDefault();
+            
+            const data = {
+                police_no: document.getElementById('edit_police_no').value,
+                sigorta_turu: document.getElementById('edit_sigorta_turu').value,
+                sirket: document.getElementById('edit_sirket').value,
+                baslangic_tarihi: document.getElementById('edit_baslangic').value,
+                bitis_tarihi: document.getElementById('edit_bitis').value,
+                prim_tutari: parseFloat(document.getElementById('edit_prim').value),
+                komisyon_tutari: parseFloat(document.getElementById('edit_komisyon').value),
+                aciklama: document.getElementById('edit_aciklama').value,
+                odeme_sekli: document.getElementById('edit_odeme').value,
+                satisci_id: null
+            };
+
+            try {
+                const response = await fetch(`/api/police/${policeId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('✅ Poliçe güncellendi!');
+                    closeModal();
+                    loadPoliceler();
+                } else {
+                    alert('❌ ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ Güncelleme hatası!');
+            }
+        }
+
+        // Poliçe sil
+        async function policeSil(policeId) {
+            if (!confirm('Bu poliçeyi silmek istediğinizden emin misiniz?')) return;
+
+            try {
+                const response = await fetch(`/api/police/${policeId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('✅ Poliçe silindi!');
+                    closeModal();
+                    loadPoliceler();
+                } else {
+                    alert('❌ ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ Silme hatası!');
+            }
+        }
+
+        // Modal kapat
+        function closeModal() {
+            document.getElementById('policeModal').style.display = 'none';
+        }
+
+        // Dropdown'ları yükle
+        async function loadDropdowns() {
+            await loadMusteriler();
+            await loadSatiscilar();
         }
 
         // Müşterileri yükle
@@ -352,16 +794,31 @@
                 const response = await fetch('/api/musteriler');
                 const data = await response.json();
                 
-                const select = document.getElementById('p_musteri_id');
-                select.innerHTML = '<option value="">Seçiniz</option>';
-                
                 if (data.success) {
-                    data.data.forEach(m => {
-                        select.innerHTML += `<option value="${m.id}">${m.ad_soyad}</option>`;
-                    });
+                    currentMusteriler = data.data;
+                    const select = document.getElementById('p_musteri_id');
+                    select.innerHTML = '<option value="">Seçiniz</option>' +
+                        data.data.map(m => `<option value="${m.id}">${m.ad_soyad}</option>`).join('');
                 }
             } catch (error) {
                 console.error('Müşteri yükleme hatası:', error);
+            }
+        }
+
+        // Satışçıları yükle
+        async function loadSatiscilar() {
+            try {
+                const response = await fetch('/api/satiscilar');
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSatiscilar = data.data;
+                    const select = document.getElementById('p_satisci');
+                    select.innerHTML = '<option value="">Seçiniz</option>' +
+                        data.data.map(s => `<option value="${s.id}">${s.ad_soyad}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Satışçı yükleme hatası:', error);
             }
         }
 
@@ -385,19 +842,14 @@
                 });
 
                 const result = await response.json();
-                const alertDiv = document.getElementById('musteri-alert');
-
                 if (result.success) {
-                    alertDiv.innerHTML = `<div class="alert alert-success">✅ ${result.message}</div>`;
+                    showAlert('musteri-alert', '✅ ' + result.message);
                     e.target.reset();
                 } else {
-                    alertDiv.innerHTML = `<div class="alert alert-error">❌ ${result.message}</div>`;
+                    showAlert('musteri-alert', '❌ ' + result.message, 'error');
                 }
-
-                setTimeout(() => alertDiv.innerHTML = '', 3000);
             } catch (error) {
-                document.getElementById('musteri-alert').innerHTML = 
-                    '<div class="alert alert-error">❌ Bağlantı hatası!</div>';
+                showAlert('musteri-alert', '❌ Bağlantı hatası!', 'error');
             }
         }
 
@@ -412,7 +864,11 @@
                 sirket: document.getElementById('p_sirket').value,
                 baslangic_tarihi: document.getElementById('p_baslangic').value,
                 bitis_tarihi: document.getElementById('p_bitis').value,
-                prim_tutari: parseFloat(document.getElementById('p_prim').value) || 0
+                prim_tutari: parseFloat(document.getElementById('p_prim').value) || 0,
+                komisyon_tutari: parseFloat(document.getElementById('p_komisyon').value) || 0,
+                satisci_id: document.getElementById('p_satisci').value || null,
+                odeme_sekli: document.getElementById('p_odeme').value,
+                aciklama: document.getElementById('p_aciklama').value
             };
 
             try {
@@ -423,19 +879,304 @@
                 });
 
                 const result = await response.json();
-                const alertDiv = document.getElementById('police-alert');
-
                 if (result.success) {
-                    alertDiv.innerHTML = `<div class="alert alert-success">✅ ${result.message}</div>`;
+                    showAlert('police-alert', '✅ ' + result.message);
                     e.target.reset();
                 } else {
-                    alertDiv.innerHTML = `<div class="alert alert-error">❌ ${result.message}</div>`;
+                    showAlert('police-alert', '❌ ' + result.message, 'error');
                 }
-
-                setTimeout(() => alertDiv.innerHTML = '', 3000);
             } catch (error) {
-                document.getElementById('police-alert').innerHTML = 
-                    '<div class="alert alert-error">❌ Bağlantı hatası!</div>';
+                showAlert('police-alert', '❌ Bağlantı hatası!', 'error');
+            }
+        }
+
+        // Yenilemeleri yükle
+        async function loadYenilemeler() {
+            try {
+                const response = await fetch('/api/yenilemeler');
+                const data = await response.json();
+                
+                const listDiv = document.getElementById('yenileme-list');
+                
+                if (data.success && data.data.length > 0) {
+                    listDiv.innerHTML = `
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Poliçe No</th>
+                                        <th>Müşteri</th>
+                                        <th>Tür</th>
+                                        <th>Bitiş Tarihi</th>
+                                        <th>Durum</th>
+                                        <th>İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.data.map(p => `
+                                        <tr>
+                                            <td>${p.police_no}</td>
+                                            <td>${p.musteri_ad || '-'}</td>
+                                            <td>${p.sigorta_turu}</td>
+                                            <td>${p.bitis_tarihi}</td>
+                                            <td>
+                                                <select onchange="yenilemeDurumDegistir(${p.id}, this.value)" style="padding:5px;">
+                                                    <option value="Beklemede" ${p.yenileme_durumu === 'Beklemede' ? 'selected' : ''}>Beklemede</option>
+                                                    <option value="Arandı" ${p.yenileme_durumu === 'Arandı' ? 'selected' : ''}>Arandı</option>
+                                                    <option value="Teklif Verildi" ${p.yenileme_durumu === 'Teklif Verildi' ? 'selected' : ''}>Teklif Verildi</option>
+                                                    <option value="Yenilendi" ${p.yenileme_durumu === 'Yenilendi' ? 'selected' : ''}>Yenilendi</option>
+                                                    <option value="İptal" ${p.yenileme_durumu === 'İptal' ? 'selected' : ''}>İptal</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <span class="badge ${getBadgeClass(p.yenileme_durumu)}">${p.yenileme_durumu || 'Beklemede'}</span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                } else {
+                    listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>Yenilenecek poliçe yok</p></div>';
+                }
+            } catch (error) {
+                document.getElementById('yenileme-list').innerHTML = 
+                    '<div class="alert alert-error">❌ Yükleme hatası!</div>';
+            }
+        }
+
+        // Yenileme durumu değiştir
+        async function yenilemeDurumDegistir(policeId, yeniDurum) {
+            try {
+                const response = await fetch(`/api/yenileme/${policeId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ yenileme_durumu: yeniDurum })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    loadYenilemeler();
+                }
+            } catch (error) {
+                alert('❌ Güncelleme hatası!');
+            }
+        }
+
+        // Badge class
+        function getBadgeClass(durum) {
+            if (!durum || durum === 'Beklemede') return 'badge-warning';
+            if (durum === 'Yenilendi') return 'badge-success';
+            if (durum === 'İptal') return 'badge-danger';
+            return 'badge-info';
+        }
+
+        // Finans yükle
+        async function loadFinans() {
+            try {
+                const response = await fetch('/api/finans');
+                const data = await response.json();
+                
+                const listDiv = document.getElementById('finans-list');
+                
+                if (data.success && data.data.length > 0) {
+                    listDiv.innerHTML = `
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Poliçe No</th>
+                                        <th>Müşteri</th>
+                                        <th>Prim</th>
+                                        <th>Ödenen</th>
+                                        <th>Kalan</th>
+                                        <th>Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.data.map(p => {
+                                        const prim = p.prim_tutari || 0;
+                                        const odenen = p.odenen_tutar || 0;
+                                        const kalan = prim - odenen;
+                                        return `
+                                        <tr>
+                                            <td>${p.police_no}</td>
+                                            <td>${p.musteri_ad || '-'}</td>
+                                            <td>${prim.toFixed(2)} ₺</td>
+                                            <td>${odenen.toFixed(2)} ₺</td>
+                                            <td><strong>${kalan.toFixed(2)} ₺</strong></td>
+                                            <td>
+                                                <span class="badge ${kalan > 0 ? 'badge-danger' : 'badge-success'}">
+                                                    ${kalan > 0 ? 'Borçlu' : 'Ödendi'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `}).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                } else {
+                    listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><p>Nakit poliçe yok</p></div>';
+                }
+            } catch (error) {
+                document.getElementById('finans-list').innerHTML = 
+                    '<div class="alert alert-error">❌ Yükleme hatası!</div>';
+            }
+        }
+
+        // Rapor dropdown'ları
+        async function loadRaporDropdowns() {
+            await loadSatiscilar();
+            const select = document.getElementById('r_satisci');
+            select.innerHTML = '<option value="">Tümü</option>' +
+                currentSatiscilar.map(s => `<option value="${s.id}">${s.ad_soyad}</option>`).join('');
+        }
+
+        // Rapor oluştur
+        async function raporOlustur() {
+            try {
+                const data = {
+                    baslangic_tarihi: document.getElementById('r_baslangic').value,
+                    bitis_tarihi: document.getElementById('r_bitis').value,
+                    satisci_id: document.getElementById('r_satisci').value,
+                    sigorta_turu: document.getElementById('r_tur').value
+                };
+
+                const response = await fetch('/api/raporlar', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    const totalPrim = result.data.reduce((sum, p) => sum + (p[6] || 0), 0);
+                    const totalKomisyon = result.data.reduce((sum, p) => sum + (p[7] || 0), 0);
+
+                    document.getElementById('rapor-sonuc').innerHTML = `
+                        <div class="grid-2" style="margin-bottom:20px;">
+                            <div class="stat-card">
+                                <h3>${result.data.length}</h3>
+                                <p>Toplam Poliçe</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>${totalPrim.toFixed(0)} ₺</h3>
+                                <p>Toplam Prim</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>${totalKomisyon.toFixed(0)} ₺</h3>
+                                <p>Toplam Komisyon</p>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Müşteri</th>
+                                        <th>Poliçe No</th>
+                                        <th>Tür</th>
+                                        <th>Şirket</th>
+                                        <th>Prim</th>
+                                        <th>Komisyon</th>
+                                        <th>Satışçı</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${result.data.map(p => `
+                                        <tr>
+                                            <td>${p[0]}</td>
+                                            <td>${p[1]}</td>
+                                            <td>${p[2]}</td>
+                                            <td>${p[3]}</td>
+                                            <td>${(p[6] || 0).toFixed(2)} ₺</td>
+                                            <td>${(p[7] || 0).toFixed(2)} ₺</td>
+                                            <td>${p[8] || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('rapor-sonuc').innerHTML = 
+                        '<div class="empty-state"><div class="empty-state-icon">📊</div><p>Rapor verisi bulunamadı</p></div>';
+                }
+            } catch (error) {
+                document.getElementById('rapor-sonuc').innerHTML = 
+                    '<div class="alert alert-error">❌ Rapor oluşturma hatası!</div>';
+            }
+        }
+
+        // Çapraz satış dropdown'ları
+        async function loadCaprazSatisDropdowns() {
+            await loadMusteriler();
+            const select = document.getElementById('cs_musteri');
+            select.innerHTML = '<option value="">Seçiniz</option>' +
+                currentMusteriler.map(m => `<option value="${m.id}">${m.ad_soyad}</option>`).join('');
+        }
+
+        // Çapraz satış göster
+        async function caprazSatisGoster() {
+            const musteriId = document.getElementById('cs_musteri').value;
+            if (!musteriId) {
+                document.getElementById('capraz-satis-sonuc').innerHTML = '';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/capraz-satis/${musteriId}`);
+                const result = await response.json();
+                
+                const resultDiv = document.getElementById('capraz-satis-sonuc');
+                
+                if (result.success && result.data.length > 0) {
+                    const turler = [...new Set(result.data.map(p => p.sigorta_turu))];
+                    const mevcutTurler = ['Kasko', 'Trafik', 'Konut', 'İşyeri', 'Sağlık', 'Hayat', 'Dask'];
+                    const eksikTurler = mevcutTurler.filter(t => !turler.includes(t));
+
+                    resultDiv.innerHTML = `
+                        <h3 style="margin:20px 0 10px 0;">Mevcut Poliçeler (${result.data.length})</h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr><th>Poliçe No</th><th>Tür</th><th>Şirket</th><th>Bitiş</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${result.data.map(p => `
+                                        <tr>
+                                            <td>${p.police_no}</td>
+                                            <td>${p.sigorta_turu}</td>
+                                            <td>${p.sirket}</td>
+                                            <td>${p.bitis_tarihi}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <h3 style="margin:20px 0 10px 0; color:#28a745;">✅ Satış Fırsatları</h3>
+                        ${eksikTurler.length > 0 ? 
+                            '<div style="display:flex; flex-wrap:wrap; gap:10px;">' +
+                            eksikTurler.map(t => `<span class="badge badge-success" style="font-size:14px; padding:10px 20px;">${t}</span>`).join('') +
+                            '</div>'
+                            : '<p>Tüm sigorta türleri mevcut!</p>'}
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-warning">⚠️ Bu müşterinin henüz poliçesi yok. Tüm türlerde satış yapılabilir!</div>';
+                }
+            } catch (error) {
+                document.getElementById('capraz-satis-sonuc').innerHTML = 
+                    '<div class="alert alert-error">❌ Yükleme hatası!</div>';
+            }
+        }
+
+        // Modal dışına tıklayınca kapat
+        window.onclick = function(event) {
+            const modal = document.getElementById('policeModal');
+            if (event.target == modal) {
+                closeModal();
             }
         }
 
@@ -444,5 +1185,3 @@
     </script>
 </body>
 </html>
-
-

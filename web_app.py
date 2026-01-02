@@ -113,6 +113,118 @@ def get_satiscilar():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/police/<police_no>', methods=['GET'])
+def get_police_detay(police_no):
+    """Poliçe detayını getir"""
+    try:
+        police = db.police_no_ile_getir(police_no)
+        if police:
+            return jsonify({'success': True, 'data': police})
+        return jsonify({'success': False, 'error': 'Poliçe bulunamadı'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/police/<int:police_id>', methods=['PUT'])
+def police_guncelle(police_id):
+    """Poliçe güncelle"""
+    try:
+        data = request.get_json()
+        success, message = db.police_guncelle(
+            police_id,
+            data.get('police_no'),
+            data.get('sigorta_turu'),
+            data.get('sirket'),
+            data.get('baslangic_tarihi'),
+            data.get('bitis_tarihi'),
+            data.get('prim_tutari'),
+            data.get('komisyon_tutari'),
+            data.get('aciklama'),
+            data.get('satisci_id'),
+            data.get('odeme_sekli')
+        )
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/police/<int:police_id>', methods=['DELETE'])
+def police_sil(police_id):
+    """Poliçe sil"""
+    try:
+        success, message = db.police_sil(police_id)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/yenilemeler', methods=['GET'])
+def get_yenilemeler():
+    """Yenileme poliçelerini getir"""
+    try:
+        yenilemeler = db.yenileme_policeleri_getir()
+        return jsonify({'success': True, 'data': yenilemeler})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/yenileme/<int:police_id>', methods=['PUT'])
+def yenileme_guncelle(police_id):
+    """Yenileme durumunu güncelle"""
+    try:
+        data = request.get_json()
+        yeni_durum = data.get('yenileme_durumu')
+        success, message = db.yenileme_durumu_guncelle(police_id, yeni_durum)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/finans', methods=['GET'])
+def get_finans():
+    """Nakit poliçeleri getir"""
+    try:
+        policeler = db.nakit_policeleri_getir()
+        return jsonify({'success': True, 'data': policeler})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/finans/<int:police_id>', methods=['PUT'])
+def finans_guncelle(police_id):
+    """Finans durumu güncelle"""
+    try:
+        data = request.get_json()
+        success, message = db.finans_guncelle(
+            police_id,
+            data.get('odenen_tutar'),
+            data.get('odeme_tarihi')
+        )
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/raporlar', methods=['POST'])
+def raporlar():
+    """Rapor oluştur"""
+    try:
+        data = request.get_json()
+        bas_tarih = data.get('baslangic_tarihi')
+        bit_tarih = data.get('bitis_tarihi')
+        satisci_id = data.get('satisci_id')
+        sigorta_turu = data.get('sigorta_turu')
+        
+        # Tüm poliçeleri al
+        policeler = db.police_listesi_getir()
+        
+        # Filtreleme mantığı buraya eklenecek (şimdilik tümünü dön)
+        return jsonify({'success': True, 'data': policeler})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/capraz-satis/<int:musteri_id>', methods=['GET'])
+def capraz_satis(musteri_id):
+    """Müşterinin mevcut poliçelerini getir"""
+    try:
+        policeler = db.musteri_police_detay_getir(musteri_id)
+        return jsonify({'success': True, 'data': policeler})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 def get_local_ip():
     """Yerel IP adresini bul"""
     import socket

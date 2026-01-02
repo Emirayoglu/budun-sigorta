@@ -207,13 +207,31 @@ class SupabaseDB:
             return police[0]
         return None
     
-    def police_guncelle(self, police_id, **kwargs):
+    def police_guncelle(self, police_id, police_no, sigorta_turu, sirket, baslangic_tarihi, bitis_tarihi, prim_tutari, komisyon_tutari, aciklama, satisci_id, odeme_sekli):
         """Poliçe güncelle"""
-        return self._patch('policeler', {'id': police_id}, kwargs)
+        data = {
+            'police_no': police_no,
+            'sigorta_turu': sigorta_turu,
+            'sirket': sirket,
+            'baslangic_tarihi': baslangic_tarihi,
+            'bitis_tarihi': bitis_tarihi,
+            'prim_tutari': prim_tutari,
+            'komisyon_tutari': komisyon_tutari,
+            'aciklama': aciklama,
+            'satisci_id': satisci_id,
+            'odeme_sekli': odeme_sekli
+        }
+        result = self._patch('policeler', {'id': police_id}, data)
+        if result:
+            return True, "Poliçe güncellendi"
+        return False, "Güncelleme başarısız"
     
     def police_sil(self, police_id):
         """Poliçe sil"""
-        return self._delete('policeler', {'id': police_id})
+        result = self._delete('policeler', {'id': police_id})
+        if result:
+            return True, "Poliçe silindi"
+        return False, "Silme başarısız"
     
     def satisci_ekle(self, ad_soyad, telefon='', email='', komisyon_orani=0):
         """Yeni satışçı ekle"""
@@ -238,12 +256,15 @@ class SupabaseDB:
         """Finans kayıtlarını getir"""
         return self._get('finans_kayitlari', order='kayit_tarihi.desc')
     
-    def finans_guncelle(self, police_id, odendi_mi, odeme_tarihi=None):
+    def finans_guncelle(self, police_id, odenen_tutar, odeme_tarihi=None):
         """Finans durumunu güncelle"""
-        data = {'odendi_mi': odendi_mi}
+        data = {'odenen_tutar': odenen_tutar}
         if odeme_tarihi:
             data['odeme_tarihi'] = odeme_tarihi
-        return self._patch('finans_kayitlari', {'police_id': police_id}, data)
+        result = self._patch('policeler', {'id': police_id}, data)
+        if result:
+            return True, "Ödeme kaydedildi"
+        return False, "Güncelleme başarısız"
     
     def finans_detay_getir(self, finans_id):
         """Finans detayını getir"""
@@ -287,20 +308,9 @@ class SupabaseDB:
         
         return filtered
     
-    def musteri_police_detay_getir(self, police_id):
-        """Poliçe ve müşteri bilgilerini birlikte getir (çapraz satış için)"""
-        police = self._get('policeler', filters={'id': police_id})
-        if not police:
-            return None
-        
-        p = police[0]
-        musteri = self._get('musteriler', filters={'id': p.get('musteri_id')})
-        
-        if musteri:
-            m = musteri[0]
-            return (p.get('musteri_id'), m.get('ad_soyad'), m.get('tc_no'), m.get('telefon'))
-        
-        return None
+    def musteri_police_detay_getir(self, musteri_id):
+        """Müşterinin tüm poliçelerini getir (çapraz satış için)"""
+        return self._get('policeler', filters={'musteri_id': musteri_id}, order='kayit_tarihi.desc')
     
     def close(self):
         """Bağlantıyı kapat (dummy)"""
