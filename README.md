@@ -1,49 +1,137 @@
-# Sigorta Acente Yönetim Sistemi
+# 📱 BUDUN Sigorta Yönetim Sistemi
 
-## Kurulum
+Modern, kullanıcı dostu masaüstü sigorta yönetim uygulaması.
 
-### 1. Python Kurulumu
-Python 3.8 veya üzeri sürüm gereklidir.
-- [Python'u buradan indirin](https://www.python.org/downloads/)
+## ✨ Özellikler
 
-### 2. Gerekli Kütüphaneleri Kurun
+### 👥 Müşteri Yönetimi
+- ➕ Yeni müşteri ekleme
+- 📝 Müşteri bilgilerini düzenleme
+- 🔍 Müşteri arama ve filtreleme
+- 📋 TC No, telefon, email, adres takibi
 
+### 📋 Poliçe Yönetimi
+- ➕ Yeni poliçe kaydı
+- ✏️ Poliçe güncelleme
+- 🗑️ Poliçe silme
+- 🔍 Poliçe arama (müşteri, poliçe no, şirket)
+- 📊 Tüm poliçe türleri: Kasko, Trafik, Konut, İşyeri, Sağlık, Hayat, Dask, Seyahat, Ferdi Kaza
+
+### 🔄 Yenileme Takibi
+- 📅 Bitiş tarihine göre otomatik yenileme listesi
+- 🔴🟡🟢 Aciliyet durumları (30/60/120 gün)
+- 📊 Takip durumu: Beklemede, Arandı, Teklif Verildi, Yenilendi, İptal
+- 🎨 Renkli görsel göstergeler
+
+### 💰 Finans / Borç Takibi
+- 💵 Nakit poliçe takibi
+- 📊 Ödenen / Kalan tutar hesaplama
+- 📅 Ödeme tarihi takibi
+- 🔴 Borçlu poliçe uyarıları
+
+### 📊 Raporlama
+- 📅 Tarih aralığına göre raporlar
+- 👤 Satışçı bazlı raporlar
+- 🏷️ Sigorta türüne göre filtreleme
+- 💰 Toplam prim ve komisyon hesaplama
+- 📈 Excel'e aktarma
+
+### 🎯 Çapraz Satış
+- 📋 Müşterinin mevcut poliçelerini görüntüleme
+- ✅ Satış fırsatlarını belirleme
+- 💡 Eksik sigorta türlerini önerme
+
+### 👤 Satışçı Yönetimi
+- ➕ Satışçı ekleme/düzenleme
+- 💼 Komisyon oranı takibi
+- 📊 Satışçı bazlı performans raporları
+
+## 🚀 Kurulum ve Kullanım
+
+### 📥 EXE Dosyasını Çalıştırma
+
+1. **İndirme:**
+   - `dist/BUDUN-Sigorta.exe` dosyasını istediğiniz konuma kopyalayın
+
+2. **Çalıştırma:**
+   - EXE dosyasına çift tıklayın
+   - Program otomatik olarak açılacak
+   - İlk çalıştırmada cloud veritabanına bağlanacak
+
+3. **Cloud Veritabanı:**
+   - ✅ Tüm veriler Supabase cloud'da saklanır
+   - ✅ Her yerden aynı verilere erişim
+   - ✅ Otomatik yedekleme
+   - ✅ Çoklu cihaz senkronizasyonu
+
+### 🛠️ Geliştirme (Python Kaynak Kodundan)
+
+**Gereksinimler:**
 ```bash
-pip install -r requirements.txt
+Python 3.13+
+PySide6
+requests
 ```
 
-### 3. Programı Çalıştırın
+**Kurulum:**
+```bash
+pip install PySide6 requests
+```
 
+**Çalıştırma:**
 ```bash
 python main.py
 ```
 
-## Mevcut Özellikler (v0.1)
+**EXE Oluşturma:**
+```bash
+python build_exe.py
+```
 
-✅ Müşteri bilgileri girişi
-✅ Poliçe bilgileri girişi
-✅ Veritabanına kaydetme
-✅ Modern ve kullanıcı dostu arayüz
+## 📁 Proje Yapısı
 
-## Yapılacaklar
+```
+BUDUNv2/
+├── main.py                     # Ana uygulama
+├── database_supabase.py        # Cloud veritabanı işlemleri
+├── config.py                   # Supabase bağlantı ayarları
+├── build_exe.py                # EXE oluşturma script'i
+├── dist/
+│   └── BUDUN-Sigorta.exe      # Çalıştırılabilir dosya
+└── README.md                   # Bu dosya
+```
 
-- [ ] Poliçe listeleme ve görüntüleme
-- [ ] Yenileme hatırlatmaları
-- [ ] Raporlama ve filtreleme
-- [ ] Finans takibi
-- [ ] Excel/PDF export
+## 🔐 Güvenlik
 
-## Veritabanı Yapısı
+- 🔒 Cloud veritabanı SSL ile şifrelenir
+- 🔑 API anahtarları güvenli şekilde saklanır
+- 👤 Kullanıcı verilerinin gizliliği korunur
 
-Program SQLite veritabanı kullanır. `sigorta_acente.db` dosyası otomatik oluşturulur.
+## 🎨 Arayüz
 
-### Tablolar:
-- **musteriler**: Müşteri bilgileri
-- **policeler**: Poliçe kayıtları
+- 🌈 Modern gradient tasarım
+- 📱 Kullanıcı dostu menüler
+- 🎯 Kolay navigasyon
+- 📊 Görsel göstergeler ve renkli durumlar
+- ⚡ Hızlı arama ve filtreleme
 
-## Notlar
+## 💾 Veritabanı
 
-- TC No alanı benzersiz olmalıdır
-- Poliçe numarası benzersiz olmalıdır
-- Tarih formatı: GG.AA.YYYY
+- ☁️ **Supabase PostgreSQL** - Cloud veritabanı
+- 🔄 Otomatik senkronizasyon
+- 📊 İlişkisel veri yapısı
+- 🔍 Gelişmiş sorgulama özellikleri
 
+## 📞 Destek
+
+Sorun bildirmek veya öneride bulunmak için GitHub Issues kullanabilirsiniz.
+
+## 📝 Lisans
+
+Bu proje özel kullanım içindir.
+
+---
+
+**Geliştirici:** BUDUN Sigorta Ekibi
+**Versiyon:** 2.0
+**Son Güncelleme:** 2026
