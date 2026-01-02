@@ -36,32 +36,12 @@ class SigortaAcenteApp(QMainWindow):
         main_layout = QVBoxLayout()
         main_widget.setLayout(main_layout)
         
-        # Üst Bölüm (Başlık + Ayarlar)
+        # Üst Bölüm - Ayarlar butonu sol üstte, Başlık ortada
         ust_layout = QHBoxLayout()
         
-        # Sol boşluk
-        ust_layout.addStretch()
-        
-        # Başlık (Ortada)
-        baslik_widget = QWidget()
-        baslik_layout = QVBoxLayout()
-        baslik_widget.setLayout(baslik_layout)
-        
-        baslik = QLabel("BUDUN")
-        baslik_font = QFont("Courier New", 42, QFont.Weight.Black)
-        baslik.setFont(baslik_font)
-        baslik.setAlignment(Qt.AlignCenter)
-        baslik.setStyleSheet("""
-            color: #0d47a1; 
-            padding: 10px;
-            letter-spacing: 30px;
-            font-weight: 900;
-            background: transparent;
-        """)
-        baslik_layout.addWidget(baslik)
-        
-        # Ayarlar Butonu (Windows 7 Tarzı)
+        # SOL ÜST - Ayarlar Butonu
         ayarlar_btn = QPushButton("⚙️ Ayarlar")
+        ayarlar_btn.setFixedSize(85, 28)
         ayarlar_btn.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -69,7 +49,7 @@ class SigortaAcenteApp(QMainWindow):
                 color: #333333;
                 border: 1px solid #8f8f8f;
                 border-radius: 3px;
-                padding: 6px 20px;
+                padding: 4px 8px;
                 font-size: 11px;
                 font-weight: bold;
             }
@@ -83,34 +63,30 @@ class SigortaAcenteApp(QMainWindow):
                                            stop:0 #c0e0ff, stop:1 #a0d0ff);
             }
         """)
-        ayarlar_btn.clicked.connect(self.toggle_ayarlar_panel)
-        baslik_layout.addWidget(ayarlar_btn, alignment=Qt.AlignCenter)
+        ayarlar_btn.clicked.connect(self.open_ayarlar_dialog)
+        ust_layout.addWidget(ayarlar_btn, alignment=Qt.AlignLeft | Qt.AlignTop)
         
-        ust_layout.addWidget(baslik_widget)
+        # Boşluk
+        ust_layout.addStretch()
+        
+        # ORTADA - Başlık
+        baslik = QLabel("BUDUN")
+        baslik_font = QFont("Courier New", 42, QFont.Weight.Black)
+        baslik.setFont(baslik_font)
+        baslik.setAlignment(Qt.AlignCenter)
+        baslik.setStyleSheet("""
+            color: #0d47a1; 
+            padding: 20px;
+            letter-spacing: 30px;
+            font-weight: 900;
+            background: transparent;
+        """)
+        ust_layout.addWidget(baslik)
         
         # Sağ boşluk
         ust_layout.addStretch()
         
         main_layout.addLayout(ust_layout)
-        
-        # Ayarlar Paneli (Gizli başlangıç - Windows 7 Tarzı)
-        self.ayarlar_panel = QWidget()
-        self.ayarlar_panel.setStyleSheet("""
-            QWidget {
-                background-color: #f0f0f0;
-                border: 2px solid #8f8f8f;
-                border-radius: 5px;
-            }
-        """)
-        self.ayarlar_panel.setVisible(False)
-        
-        ayarlar_layout = QVBoxLayout()
-        self.ayarlar_panel.setLayout(ayarlar_layout)
-        
-        # Ayarlar içeriği
-        self.setup_ayarlar_panel_content(ayarlar_layout)
-        
-        main_layout.addWidget(self.ayarlar_panel)
         
         # Tab Widget
         self.tab_widget = QTabWidget()
@@ -2396,205 +2372,15 @@ class SigortaAcenteApp(QMainWindow):
             # Poliçe eklendi, tüm listeleri güncelle
             self.tum_listeleri_guncelle()
     
-    def toggle_ayarlar_panel(self):
-        """Ayarlar panelini aç/kapat"""
-        self.ayarlar_panel.setVisible(not self.ayarlar_panel.isVisible())
-    
-    def setup_ayarlar_panel_content(self, main_layout):
-        """Ayarlar panel içeriğini oluştur (Windows 7 Tarzı)"""
-        
-        # İçerik Layout (Yatay - Sol ve Sağ)
-        content_layout = QHBoxLayout()
-        
-        # SOL TARAF - Otomatik Senkronizasyon
-        sol_group = QGroupBox("Otomatik Senkronizasyon")
-        sol_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                font-size: 11px;
-                color: #333333;
-                border: 1px solid #a0a0a0;
-                border-radius: 0px;
-                margin-top: 10px;
-                padding-top: 10px;
-                background-color: white;
-            }
-            QGroupBox::title {
-                color: #003d99;
-                subcontrol-origin: margin;
-                left: 7px;
-                padding: 0 3px;
-            }
-        """)
-        sol_layout = QVBoxLayout()
-        sol_group.setLayout(sol_layout)
-        
-        # Checkbox (Win 7 tarzı)
-        self.auto_refresh_checkbox = QCheckBox("Otomatik Senkronizasyonu Etkinleştir")
-        self.auto_refresh_checkbox.setChecked(self.auto_refresh_enabled)
-        self.auto_refresh_checkbox.setStyleSheet("""
-            QCheckBox {
-                font-size: 11px;
-                color: #333333;
-                padding: 5px;
-            }
-            QCheckBox::indicator {
-                width: 13px;
-                height: 13px;
-            }
-        """)
-        self.auto_refresh_checkbox.stateChanged.connect(
-            lambda state: self.toggle_auto_refresh(state == 2)
-        )
-        sol_layout.addWidget(self.auto_refresh_checkbox)
-        
-        # Aralık seçimi
-        aralik_layout = QHBoxLayout()
-        aralik_label = QLabel("Yenileme Aralığı:")
-        aralik_label.setStyleSheet("font-size: 11px; color: #333333; padding: 5px 0;")
-        aralik_layout.addWidget(aralik_label)
-        
-        self.aralik_combo = QComboBox()
-        self.aralik_combo.addItems(["15 saniye", "30 saniye", "1 dakika", "2 dakika", "5 dakika"])
-        self.aralik_combo.setCurrentIndex(1)
-        self.aralik_combo.setStyleSheet("""
-            QComboBox {
-                padding: 3px 8px;
-                border: 1px solid #a0a0a0;
-                background-color: white;
-                font-size: 11px;
-            }
-            QComboBox:hover {
-                border: 1px solid #0078d7;
-            }
-        """)
-        self.aralik_combo.currentIndexChanged.connect(self.on_aralik_changed)
-        aralik_layout.addWidget(self.aralik_combo)
-        aralik_layout.addStretch()
-        sol_layout.addLayout(aralik_layout)
-        
-        # Durum
-        self.durum_label = QLabel()
-        self.update_durum_label()
-        self.durum_label.setStyleSheet("""
-            QLabel {
-                padding: 8px;
-                border: 1px solid #a0a0a0;
-                font-size: 10px;
-                margin-top: 5px;
-            }
-        """)
-        sol_layout.addWidget(self.durum_label)
-        sol_layout.addStretch()
-        
-        content_layout.addWidget(sol_group)
-        
-        # ORTA - Butonlar
-        orta_layout = QVBoxLayout()
-        
-        # Şimdi Yenile butonu (Win 7 tarzı)
-        yenile_btn = QPushButton("Şimdi Yenile")
-        yenile_btn.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                           stop:0 #f0f0f0, stop:1 #d0d0d0);
-                color: #333333;
-                border: 1px solid #8f8f8f;
-                border-radius: 3px;
-                padding: 8px 20px;
-                font-size: 11px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                           stop:0 #e5f3ff, stop:1 #c0e0ff);
-                border: 1px solid #0078d7;
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                           stop:0 #c0e0ff, stop:1 #a0d0ff);
-            }
-        """)
-        yenile_btn.clicked.connect(self.manuel_yenile)
-        orta_layout.addWidget(yenile_btn)
-        orta_layout.addStretch()
-        
-        content_layout.addLayout(orta_layout)
-        
-        # SAĞ TARAF - Veritabanı Bilgisi
-        sag_group = QGroupBox("Veritabanı Bilgileri")
-        sag_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                font-size: 11px;
-                color: #333333;
-                border: 1px solid #a0a0a0;
-                border-radius: 0px;
-                margin-top: 10px;
-                padding-top: 10px;
-                background-color: white;
-            }
-            QGroupBox::title {
-                color: #003d99;
-                subcontrol-origin: margin;
-                left: 7px;
-                padding: 0 3px;
-            }
-        """)
-        sag_layout = QVBoxLayout()
-        sag_group.setLayout(sag_layout)
-        
-        db_info = QLabel(
-            "<b>Tip:</b> Supabase Cloud<br>"
-            "<b>Konum:</b> İzlanda<br>"
-            "<b>Güvenlik:</b> SSL<br>"
-            "<b>Yedekleme:</b> Otomatik"
-        )
-        db_info.setStyleSheet("color: #333333; padding: 5px; font-size: 10px;")
-        sag_layout.addWidget(db_info)
-        sag_layout.addStretch()
-        
-        content_layout.addWidget(sag_group)
-        
-        main_layout.addLayout(content_layout)
+    def open_ayarlar_dialog(self):
+        """Ayarlar popup dialog'unu aç"""
+        dialog = AyarlarDialog(self)
+        dialog.exec()
     
     def on_aralik_changed(self, index):
         """Yenileme aralığı değiştiğinde"""
         araliklar = [15, 30, 60, 120, 300]  # Saniye cinsinden
         self.set_refresh_interval(araliklar[index])
-        if hasattr(self, 'durum_label'):
-            self.update_durum_label()
-    
-    def update_durum_label(self):
-        """Durum etiketini güncelle (Windows 7 Tarzı)"""
-        if self.auto_refresh_enabled:
-            aralik = self.refresh_interval / 1000
-            if aralik < 60:
-                aralik_str = f"{int(aralik)} saniye"
-            else:
-                aralik_str = f"{int(aralik/60)} dakika"
-            
-            self.durum_label.setText(
-                f"Durum: AÇIK | Her {aralik_str} bir"
-            )
-            self.durum_label.setStyleSheet(
-                "QLabel { padding: 8px; border: 1px solid #a0a0a0; font-size: 10px; "
-                "margin-top: 5px; background-color: #d4f1d4; color: #0d5d0d; }")
-        else:
-            self.durum_label.setText(
-                "Durum: KAPALI | Manuel yenileme gerekli"
-            )
-            self.durum_label.setStyleSheet(
-                "QLabel { padding: 8px; border: 1px solid #a0a0a0; font-size: 10px; "
-                "margin-top: 5px; background-color: #f4d4d4; color: #8b0000; }")
-    
-    def manuel_yenile(self):
-        """Manuel olarak mevcut sekmeyi yenile"""
-        self.auto_refresh()
-        QMessageBox.information(
-            self,
-            "BUDUN Sigorta",
-            "Veriler başarıyla yenilendi!"
-        )
     
     def setup_auto_refresh(self):
         """Otomatik yenileme timer'ını kur"""
@@ -2647,10 +2433,6 @@ class SigortaAcenteApp(QMainWindow):
         else:
             self.refresh_timer.stop()
             print("❌ Otomatik yenileme KAPATILDI")
-        
-        # Durum labelini güncelle
-        if hasattr(self, 'durum_label'):
-            self.update_durum_label()
     
     def set_refresh_interval(self, seconds):
         """Yenileme aralığını değiştir (saniye cinsinden)"""
@@ -3635,6 +3417,253 @@ class FinansDetayDialog(QDialog):
         
         except ValueError:
             QMessageBox.warning(self, "Uyarı", "Lütfen geçerli bir sayı giriniz!")
+
+
+class AyarlarDialog(QDialog):
+    """Ayarlar popup penceresi (Windows 7 Tarzı)"""
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.init_ui()
+    
+    def init_ui(self):
+        """Ayarlar penceresini oluştur"""
+        self.setWindowTitle("BUDUN Sigorta - Ayarlar")
+        self.setModal(True)
+        self.setFixedSize(580, 280)
+        
+        # Windows 7 tarzı arka plan
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #f0f0f0;
+            }
+        """)
+        
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        
+        # İçerik Layout (Yatay - Sol, Orta, Sağ)
+        content_layout = QHBoxLayout()
+        
+        # SOL TARAF - Otomatik Senkronizasyon
+        sol_group = QGroupBox("Otomatik Senkronizasyon")
+        sol_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 11px;
+                color: #333333;
+                border: 1px solid #a0a0a0;
+                border-radius: 0px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background-color: white;
+            }
+            QGroupBox::title {
+                color: #003d99;
+                subcontrol-origin: margin;
+                left: 7px;
+                padding: 0 3px;
+            }
+        """)
+        sol_layout = QVBoxLayout()
+        sol_group.setLayout(sol_layout)
+        
+        # Checkbox
+        self.auto_refresh_checkbox = QCheckBox("Otomatik Senkronizasyonu Etkinleştir")
+        self.auto_refresh_checkbox.setChecked(self.parent.auto_refresh_enabled)
+        self.auto_refresh_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-size: 11px;
+                color: #333333;
+                padding: 5px;
+            }
+            QCheckBox::indicator {
+                width: 13px;
+                height: 13px;
+            }
+        """)
+        self.auto_refresh_checkbox.stateChanged.connect(
+            lambda state: self.parent.toggle_auto_refresh(state == 2)
+        )
+        sol_layout.addWidget(self.auto_refresh_checkbox)
+        
+        # Aralık seçimi
+        aralik_layout = QHBoxLayout()
+        aralik_label = QLabel("Yenileme Aralığı:")
+        aralik_label.setStyleSheet("font-size: 11px; color: #333333; padding: 5px 0;")
+        aralik_layout.addWidget(aralik_label)
+        
+        self.aralik_combo = QComboBox()
+        self.aralik_combo.addItems(["15 saniye", "30 saniye", "1 dakika", "2 dakika", "5 dakika"])
+        # Mevcut aralığı seç
+        araliklar = [15000, 30000, 60000, 120000, 300000]
+        try:
+            index = araliklar.index(self.parent.refresh_interval)
+            self.aralik_combo.setCurrentIndex(index)
+        except:
+            self.aralik_combo.setCurrentIndex(1)
+        
+        self.aralik_combo.setStyleSheet("""
+            QComboBox {
+                padding: 3px 8px;
+                border: 1px solid #a0a0a0;
+                background-color: white;
+                font-size: 11px;
+            }
+            QComboBox:hover {
+                border: 1px solid #0078d7;
+            }
+        """)
+        self.aralik_combo.currentIndexChanged.connect(self.on_aralik_changed)
+        aralik_layout.addWidget(self.aralik_combo)
+        aralik_layout.addStretch()
+        sol_layout.addLayout(aralik_layout)
+        
+        # Durum
+        self.durum_label = QLabel()
+        self.update_durum_label()
+        self.durum_label.setStyleSheet("""
+            QLabel {
+                padding: 8px;
+                border: 1px solid #a0a0a0;
+                font-size: 10px;
+                margin-top: 5px;
+            }
+        """)
+        sol_layout.addWidget(self.durum_label)
+        sol_layout.addStretch()
+        
+        content_layout.addWidget(sol_group)
+        
+        # ORTA - Butonlar
+        orta_layout = QVBoxLayout()
+        
+        # Şimdi Yenile butonu
+        yenile_btn = QPushButton("Şimdi Yenile")
+        yenile_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #f0f0f0, stop:1 #d0d0d0);
+                color: #333333;
+                border: 1px solid #8f8f8f;
+                border-radius: 3px;
+                padding: 8px 15px;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #e5f3ff, stop:1 #c0e0ff);
+                border: 1px solid #0078d7;
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #c0e0ff, stop:1 #a0d0ff);
+            }
+        """)
+        yenile_btn.clicked.connect(self.manuel_yenile)
+        orta_layout.addWidget(yenile_btn)
+        orta_layout.addStretch()
+        
+        content_layout.addLayout(orta_layout)
+        
+        # SAĞ TARAF - Veritabanı Bilgisi
+        sag_group = QGroupBox("Veritabanı Bilgileri")
+        sag_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 11px;
+                color: #333333;
+                border: 1px solid #a0a0a0;
+                border-radius: 0px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background-color: white;
+            }
+            QGroupBox::title {
+                color: #003d99;
+                subcontrol-origin: margin;
+                left: 7px;
+                padding: 0 3px;
+            }
+        """)
+        sag_layout = QVBoxLayout()
+        sag_group.setLayout(sag_layout)
+        
+        db_info = QLabel(
+            "<b>Tip:</b> Supabase Cloud<br>"
+            "<b>Konum:</b> İzlanda<br>"
+            "<b>Güvenlik:</b> SSL<br>"
+            "<b>Yedekleme:</b> Otomatik"
+        )
+        db_info.setStyleSheet("color: #333333; padding: 5px; font-size: 10px;")
+        sag_layout.addWidget(db_info)
+        sag_layout.addStretch()
+        
+        content_layout.addWidget(sag_group)
+        
+        layout.addLayout(content_layout)
+        
+        # Alt kısım - Kapat butonu
+        alt_layout = QHBoxLayout()
+        alt_layout.addStretch()
+        
+        kapat_btn = QPushButton("Kapat")
+        kapat_btn.setFixedWidth(80)
+        kapat_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #f0f0f0, stop:1 #d0d0d0);
+                color: #333333;
+                border: 1px solid #8f8f8f;
+                border-radius: 3px;
+                padding: 6px 15px;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #e5f3ff, stop:1 #c0e0ff);
+                border: 1px solid #0078d7;
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #c0e0ff, stop:1 #a0d0ff);
+            }
+        """)
+        kapat_btn.clicked.connect(self.close)
+        alt_layout.addWidget(kapat_btn)
+        
+        layout.addLayout(alt_layout)
+    
+    def on_aralik_changed(self, index):
+        """Yenileme aralığı değiştiğinde"""
+        araliklar = [15, 30, 60, 120, 300]  # Saniye cinsinden
+        self.parent.set_refresh_interval(araliklar[index])
+        self.update_durum_label()
+    
+    def update_durum_label(self):
+        """Durum etiketini güncelle"""
+        if self.parent.auto_refresh_enabled:
+            aralik = self.parent.refresh_interval / 1000
+            if aralik < 60:
+                aralik_str = f"{int(aralik)} saniye"
+            else:
+                aralik_str = f"{int(aralik/60)} dakika"
+            
+            self.durum_label.setText(f"Durum: AÇIK | Her {aralik_str} bir")
+            self.durum_label.setStyleSheet(
+                "QLabel { padding: 8px; border: 1px solid #a0a0a0; font-size: 10px; "
+                "margin-top: 5px; background-color: #d4f1d4; color: #0d5d0d; }")
+        else:
+            self.durum_label.setText("Durum: KAPALI | Manuel yenileme gerekli")
+            self.durum_label.setStyleSheet(
+                "QLabel { padding: 8px; border: 1px solid #a0a0a0; font-size: 10px; "
+                "margin-top: 5px; background-color: #f4d4d4; color: #8b0000; }")
+    
+    def manuel_yenile(self):
+        """Manuel yenileme"""
+        self.parent.auto_refresh()
+        QMessageBox.information(self, "BUDUN Sigorta", "Veriler başarıyla yenilendi!")
+
 
 def main():
     app = QApplication(sys.argv)
