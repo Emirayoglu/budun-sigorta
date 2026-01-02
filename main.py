@@ -902,7 +902,7 @@ class SigortaAcenteApp(QMainWindow):
             self.yenileme_table.setItem(row_idx, 3, item)
             
             # Tür
-            item = QTableWidgetItem(police.get('tur', '-'))
+            item = QTableWidgetItem(police.get('sigorta_turu', '-'))
             item.setTextAlignment(Qt.AlignCenter)
             item.setBackground(QColor(satir_renk))
             item.setForeground(QColor(yazi_renk))
@@ -989,9 +989,11 @@ class SigortaAcenteApp(QMainWindow):
                 }}
                 QComboBox QAbstractItemView {{
                     background-color: white;
+                    color: #000000;
                     selection-background-color: #1976d2;
                     selection-color: white;
                     border: 2px solid #1976d2;
+                    padding: 5px;
                 }}
             """)
             
@@ -1057,7 +1059,7 @@ class SigortaAcenteApp(QMainWindow):
                               arama_metni in police_no)
             
             # Tür filtresi kontrolü
-            tur_uygun = (tur_filtre == "Tümü" or police.get('tur') == tur_filtre)
+            tur_uygun = (tur_filtre == "Tümü" or police.get('sigorta_turu') == tur_filtre)
             
             # Şirket filtresi kontrolü
             sirket_uygun = (sirket_filtre == "Tümü" or police.get('sirket') == sirket_filtre)

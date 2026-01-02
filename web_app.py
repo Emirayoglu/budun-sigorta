@@ -159,8 +159,38 @@ def police_sil(police_id):
 def get_yenilemeler():
     """Yenileme poliçelerini getir"""
     try:
-        yenilemeler = db.yenileme_policeleri_getir()
-        return jsonify({'success': True, 'data': yenilemeler})
+        from datetime import datetime, timedelta
+        
+        # Bugünden 90 gün önceden 120 gün sonraya kadar olan poliçeleri getir
+        bugun = datetime.now().date()
+        baslangic = (bugun - timedelta(days=90)).strftime("%Y-%m-%d")
+        bitis = (bugun + timedelta(days=120)).strftime("%Y-%m-%d")
+        
+        policeler = db.yenileme_policeleri_getir(baslangic, bitis)
+        
+        # Her poliçe için kalan gün ve müşteri bilgisi ekle
+        result = []
+        for p in policeler:
+            bitis_str = p.get('bitis_tarihi', '')
+            if bitis_str:
+                bitis_tarih = datetime.strptime(bitis_str.split('T')[0], "%Y-%m-%d").date()
+                kalan_gun = (bitis_tarih - bugun).days
+                
+                # Müşteri adını al
+                musteri_id = p.get('musteri_id')
+                musteri_ad = '-'
+                if musteri_id:
+                    musteriler = db.musterileri_getir()
+                    for m in musteriler:
+                        if m.get('id') == musteri_id:
+                            musteri_ad = m.get('ad_soyad', '-')
+                            break
+                
+                p['kalan_gun'] = kalan_gun
+                p['musteri_ad'] = musteri_ad
+                result.append(p)
+        
+        return jsonify({'success': True, 'data': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
